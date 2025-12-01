@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:window_manager/window_manager.dart';
+import 'package:url_strategy/url_strategy.dart';
+import 'package:proshop/utils/custom_scroll_behavior.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'package:proshop/screens/auth_screen.dart';
 import 'package:proshop/screens/main_screen.dart';
@@ -9,17 +14,11 @@ import 'package:proshop/providers/cart_provider.dart';
 import 'package:proshop/providers/favorites_provider.dart';
 import 'package:proshop/providers/orders_provider.dart';
 import 'package:proshop/providers/theme_provider.dart';
-import 'package:proshop/providers/auth_provider.dart';
 import 'package:proshop/screens/settings_screen.dart';
 import 'package:proshop/screens/orders_screen.dart';
 import 'package:proshop/screens/checkout_screen.dart';
 import 'package:proshop/screens/category_products_screen.dart';
 import 'package:proshop/theme/app_theme.dart';
-
-import 'package:flutter/foundation.dart';
-import 'package:window_manager/window_manager.dart';
-import 'package:url_strategy/url_strategy.dart';
-import 'package:proshop/utils/custom_scroll_behavior.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -58,7 +57,6 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (ctx) => FavoritesProvider()),
         ChangeNotifierProvider(create: (ctx) => ThemeProvider()),
         ChangeNotifierProvider(create: (ctx) => OrdersProvider()),
-        ChangeNotifierProvider(create: (ctx) => AuthProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
@@ -69,19 +67,7 @@ class MyApp extends StatelessWidget {
             darkTheme: AppTheme.darkTheme,
             themeMode: themeProvider.themeMode,
             scrollBehavior: CustomScrollBehavior(),
-            home: Consumer<AuthProvider>(
-              builder: (ctx, auth, _) => FutureBuilder(
-                future: auth.tryAutoLogin(),
-                builder: (ctx, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Scaffold(
-                      body: Center(child: CircularProgressIndicator()),
-                    );
-                  }
-                  return auth.isLoggedIn ? MainScreen() : OnboardingScreen();
-                },
-              ),
-            ),
+            home: OnboardingScreen(),
             routes: {
               OnboardingScreen.routeName: (context) => OnboardingScreen(),
               AuthScreen.routeName: (context) => AuthScreen(),

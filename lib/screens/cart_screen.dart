@@ -212,7 +212,7 @@ class CartItemWidget extends StatelessWidget {
         margin: EdgeInsets.symmetric(vertical: 8),
         padding: EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppTheme.surfaceColor,
+          color: Theme.of(context).cardColor,
           borderRadius: AppTheme.radius16,
           boxShadow: AppTheme.shadowSm,
         ),

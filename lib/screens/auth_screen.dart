@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/buttons.dart';
 
@@ -19,7 +17,6 @@ class _AuthScreenState extends State<AuthScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -30,37 +27,8 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      if (_isLogin) {
-        await Provider.of<AuthProvider>(context, listen: false).login(
-          _emailController.text,
-          _passwordController.text,
-        );
-      } else {
-        await Provider.of<AuthProvider>(context, listen: false).signup(
-          _nameController.text,
-          _emailController.text,
-          _passwordController.text,
-        );
-      }
-      if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/main');
-      }
-    } catch (error) {
-      // Handle error
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
+    // No validation or logic - just navigate
+    Navigator.of(context).pushReplacementNamed('/main');
   }
 
   @override
@@ -201,7 +169,6 @@ class _AuthScreenState extends State<AuthScreen> {
                     SizedBox(height: 32),
                     PrimaryButton(
                       text: _isLogin ? 'Login' : 'Sign Up',
-                      isLoading: _isLoading,
                       onPressed: _submit,
                     ),
                     SizedBox(height: 24),

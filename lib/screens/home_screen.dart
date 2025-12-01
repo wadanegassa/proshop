@@ -16,13 +16,29 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
   String _selectedCategory = 'All';
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   List<dynamic> get _filteredProducts {
-    if (_selectedCategory == 'All') {
-      return dummyProducts;
+    var products = _selectedCategory == 'All'
+        ? dummyProducts
+        : dummyProducts.where((p) => p.category == _selectedCategory).toList();
+    
+    if (_searchQuery.isNotEmpty) {
+      products = products.where((p) =>
+        p.title.toLowerCase().contains(_searchQuery) ||
+        p.category.toLowerCase().contains(_searchQuery)
+      ).toList();
     }
-    return dummyProducts.where((product) => product.category == _selectedCategory).toList();
+    
+    return products;
   }
 
   @override
@@ -47,15 +63,21 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Expanded(
                           child: CustomTextField(
+                            controller: _searchController,
                             hintText: 'Search products...',
                             prefixIcon: Icons.search,
+                            onChanged: (value) {
+                              setState(() {
+                                _searchQuery = value.toLowerCase();
+                              });
+                            },
                           ),
                         ),
                         SizedBox(width: 16),
                         Container(
                           padding: EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: AppTheme.surfaceColor,
+                            color: Theme.of(context).cardColor,
                             borderRadius: AppTheme.radius16,
                             boxShadow: AppTheme.shadowSm,
                           ),
@@ -165,8 +187,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               margin: EdgeInsets.only(right: 12),
                               padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                               decoration: BoxDecoration(
-                                color: isSelected ? AppTheme.primaryColor : AppTheme.surfaceColor,
-                                borderRadius: BorderRadius.circular(20),
+                                color: isSelected ? AppTheme.primaryColor : Theme.of(context).cardColor,
+                                borderRadius: AppTheme.radius16,
                                 border: Border.all(
                                   color: isSelected ? AppTheme.primaryColor : AppTheme.borderColor,
                                 ),

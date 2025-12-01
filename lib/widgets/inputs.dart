@@ -7,6 +7,7 @@ class CustomTextField extends StatelessWidget {
   final bool isPassword;
   final TextInputType keyboardType;
   final TextEditingController? controller;
+  final ValueChanged<String>? onChanged;
 
   const CustomTextField({
     super.key,
@@ -15,13 +16,14 @@ class CustomTextField extends StatelessWidget {
     this.isPassword = false,
     this.keyboardType = TextInputType.text,
     this.controller,
+    this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: Theme.of(context).cardColor,
         borderRadius: AppTheme.radius16,
         boxShadow: AppTheme.shadowSm,
       ),
@@ -29,6 +31,7 @@ class CustomTextField extends StatelessWidget {
         controller: controller,
         obscureText: isPassword,
         keyboardType: keyboardType,
+        onChanged: onChanged,
         style: Theme.of(context).textTheme.bodyLarge,
         decoration: InputDecoration(
           hintText: hintText,

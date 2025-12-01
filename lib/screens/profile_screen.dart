@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
-import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
-
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
+  void _logout(BuildContext context) {
+    Navigator.of(context).pushReplacementNamed('/auth');
+  }
+
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
+    final String userName = 'Guest User';
+    final String userEmail = 'guest@proshop.com';
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -31,13 +33,13 @@ class ProfileScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          auth.userName.isNotEmpty ? auth.userName : 'Guest User',
+                          userName,
                           style: Theme.of(context).textTheme.displayMedium?.copyWith(
                                 fontSize: 20,
                               ),
                         ),
                         Text(
-                          auth.userEmail.isNotEmpty ? auth.userEmail : 'Sign in to sync data',
+                          userEmail,
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                       ],
@@ -69,10 +71,7 @@ class ProfileScreen extends StatelessWidget {
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: TextButton(
-                  onPressed: () {
-                    auth.logout();
-                    Navigator.of(context).pushReplacementNamed('/auth');
-                  },
+                  onPressed: () => _logout(context),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

@@ -139,18 +139,24 @@ class AppTheme {
   }
 
   static ThemeData get darkTheme {
+    const darkBackground = Color(0xFF0D0F14);
+    const darkSurface = Color(0xFF1A1D26);
+    const darkCard = Color(0xFF22262F);
+    
     return ThemeData(
       useMaterial3: true,
-      scaffoldBackgroundColor: Color(0xFF121212),
+      scaffoldBackgroundColor: darkBackground,
       primaryColor: primaryColor,
+      cardColor: darkCard,
       colorScheme: ColorScheme.dark(
         primary: primaryColor,
         secondary: secondaryColor,
-        surface: Color(0xFF1E1E1E),
+        surface: darkSurface,
         error: errorColor,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
         onSurface: Colors.white,
+        surfaceContainerHighest: darkCard,
       ),
       textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme).copyWith(
         displayLarge: GoogleFonts.poppins(
@@ -165,11 +171,11 @@ class AppTheme {
         ),
         bodyLarge: GoogleFonts.poppins(
           fontSize: 16,
-          color: Colors.white,
+          color: Colors.white.withValues(alpha: 0.95),
         ),
         bodyMedium: GoogleFonts.poppins(
           fontSize: 14,
-          color: Colors.white70,
+          color: Colors.white.withValues(alpha: 0.7),
         ),
         labelLarge: GoogleFonts.poppins(
           fontSize: 16,
@@ -186,6 +192,13 @@ class AppTheme {
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: Colors.white,
+        ),
+      ),
+      cardTheme: CardThemeData(
+        color: darkCard,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: radius16,
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -205,15 +218,33 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Color(0xFF2C2C2E),
+        fillColor: darkCard,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
         ),
         contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         hintStyle: GoogleFonts.poppins(
-          color: Colors.white38,
+          color: Colors.white.withValues(alpha: 0.3),
           fontSize: 14,
+        ),
+      ),
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: darkSurface,
+        selectedItemColor: primaryColor,
+        unselectedItemColor: Colors.white.withValues(alpha: 0.6),
+        elevation: 0,
+      ),
+      navigationRailTheme: NavigationRailThemeData(
+        backgroundColor: darkSurface,
+        selectedIconTheme: IconThemeData(color: primaryColor),
+        unselectedIconTheme: IconThemeData(color: Colors.white.withValues(alpha: 0.6)),
+        selectedLabelTextStyle: GoogleFonts.poppins(
+          color: primaryColor,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelTextStyle: GoogleFonts.poppins(
+          color: Colors.white.withValues(alpha: 0.6),
         ),
       ),
     );

@@ -41,7 +41,7 @@ class _ProductCardState extends State<ProductCard> {
           duration: Duration(milliseconds: 200),
           transform: Matrix4.identity()..scale(_isHovered ? 1.05 : 1.0),
           decoration: BoxDecoration(
-            color: AppTheme.surfaceColor,
+            color: Theme.of(context).cardColor,
             borderRadius: AppTheme.radius24,
             boxShadow: _isHovered ? AppTheme.shadowMd : AppTheme.shadowSm,
           ),

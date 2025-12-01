@@ -41,7 +41,7 @@ class CategoriesScreen extends StatelessWidget {
             },
             child: Container(
               decoration: BoxDecoration(
-                color: AppTheme.surfaceColor,
+                color: Theme.of(context).cardColor,
                 borderRadius: AppTheme.radius16,
                 boxShadow: AppTheme.shadowSm,
               ),

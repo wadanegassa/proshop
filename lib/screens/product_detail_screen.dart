@@ -24,7 +24,7 @@ class ProductDetailScreen extends StatelessWidget {
           leading: AppIconButton(
             icon: Icons.arrow_back,
             onPressed: () => Navigator.of(context).pop(),
-            backgroundColor: AppTheme.surfaceColor,
+            backgroundColor: Theme.of(context).cardColor,
           ),
         ),
         body: Row(
