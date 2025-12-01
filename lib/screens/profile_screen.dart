@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../utils/responsive_utils.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -12,6 +13,10 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final String userName = 'Guest User';
     final String userEmail = 'guest@proshop.com';
+    final horizontalPadding = ResponsiveUtils.getHorizontalPadding(context);
+    final avatarRadius = ResponsiveUtils.getProfileAvatarRadius(context);
+    final isSmallScreen = ResponsiveUtils.isSmallPhone(context);
+    
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -20,22 +25,22 @@ class ProfileScreen extends StatelessWidget {
               SizedBox(height: 20),
               // Header
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
+                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                 child: Row(
                   children: [
                     CircleAvatar(
-                      radius: 40,
+                      radius: avatarRadius,
                       backgroundImage: NetworkImage(
                           'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'),
                     ),
-                    SizedBox(width: 16),
+                    SizedBox(width: isSmallScreen ? 12 : 16),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           userName,
                           style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                                fontSize: 20,
+                              fontSize: isSmallScreen ? 18 : 20,
                               ),
                         ),
                         Text(
@@ -52,7 +57,7 @@ class ProfileScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              SizedBox(height: 32),
+              SizedBox(height: isSmallScreen ? 24 : 32),
               
               // Menu Items
               _buildMenuItem(context, Icons.shopping_bag_outlined, 'My Orders', onTap: () {
@@ -96,8 +101,14 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildMenuItem(BuildContext context, IconData icon, String title, {VoidCallback? onTap}) {
+    final horizontalPadding = ResponsiveUtils.getHorizontalPadding(context);
+    final isSmallScreen = ResponsiveUtils.isSmallPhone(context);
+    
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      margin: EdgeInsets.symmetric(
+        horizontal: horizontalPadding,
+        vertical: isSmallScreen ? 6 : 8,
+      ),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: AppTheme.radius16,

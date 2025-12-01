@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../theme/app_theme.dart';
 import '../widgets/buttons.dart';
+import '../utils/responsive_utils.dart';
 
 class OnboardingScreen extends StatefulWidget {
   static const routeName = '/onboarding';
@@ -35,6 +36,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final horizontalPadding = ResponsiveUtils.getHorizontalPadding(context);
+    final bottomPadding = ResponsiveUtils.isSmallPhone(context) ? 24.0 : 40.0;
+    
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
@@ -56,9 +60,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             },
           ),
           Positioned(
-            bottom: 40,
-            left: 20,
-            right: 20,
+            bottom: bottomPadding,
+            left: horizontalPadding,
+            right: horizontalPadding,
             child: Column(
               children: [
                 Row(
@@ -79,7 +83,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                   ),
                 ),
-                SizedBox(height: 32),
+                SizedBox(height: ResponsiveUtils.isSmallPhone(context) ? 24 : 32),
                 PrimaryButton(
                   text: _currentPage == _onboardingData.length - 1 ? 'Get Started' : 'Next',
                   onPressed: () {
@@ -126,6 +130,11 @@ class OnboardingContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final horizontalPadding = ResponsiveUtils.getHorizontalPadding(context);
+    final topSpacing = ResponsiveUtils.isSmallPhone(context) ? 24.0 : 40.0;
+    final titleFontSize = ResponsiveUtils.scaleFontSize(32, context);
+    final descriptionFontSize = ResponsiveUtils.scaleFontSize(14, context);
+    
     return Column(
       children: [
         Expanded(
@@ -138,8 +147,8 @@ class OnboardingContent extends StatelessWidget {
                 fit: BoxFit.cover,
               ),
               borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(40),
-                bottomRight: Radius.circular(40),
+                bottomLeft: Radius.circular(ResponsiveUtils.isSmallPhone(context) ? 32 : 40),
+                bottomRight: Radius.circular(ResponsiveUtils.isSmallPhone(context) ? 32 : 40),
               ),
             ),
           ),
@@ -148,22 +157,26 @@ class OnboardingContent extends StatelessWidget {
           flex: 2,
           child: SingleChildScrollView(
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24),
+              padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
               child: Column(
                 children: [
-                  SizedBox(height: 40),
+                  SizedBox(height: topSpacing),
                   Text(
                     title,
-                    style: Theme.of(context).textTheme.displayLarge,
+                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                          fontSize: titleFontSize,
+                        ),
                     textAlign: TextAlign.center,
                   ).animate().fadeIn().slideY(begin: 0.2, end: 0),
-                  SizedBox(height: 16),
+                  SizedBox(height: ResponsiveUtils.isSmallPhone(context) ? 12 : 16),
                   Text(
                     description,
-                    style: Theme.of(context).textTheme.bodyMedium,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontSize: descriptionFontSize,
+                        ),
                     textAlign: TextAlign.center,
                   ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2, end: 0),
-                  SizedBox(height: 100), // Extra padding for bottom buttons
+                  SizedBox(height: ResponsiveUtils.isSmallPhone(context) ? 80 : 100),
                 ],
               ),
             ),

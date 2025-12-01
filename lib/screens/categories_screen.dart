@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../utils/responsive_utils.dart';
 
 class CategoriesScreen extends StatelessWidget {
   const CategoriesScreen({super.key});
@@ -22,12 +23,12 @@ class CategoriesScreen extends StatelessWidget {
         title: Text('Categories'),
       ),
       body: GridView.builder(
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.all(ResponsiveUtils.getHorizontalPadding(context)),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
+          crossAxisCount: ResponsiveUtils.getGridColumns(context),
           childAspectRatio: 1.2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
+          crossAxisSpacing: ResponsiveUtils.isSmallPhone(context) ? 12 : 16,
+          mainAxisSpacing: ResponsiveUtils.isSmallPhone(context) ? 12 : 16,
         ),
         itemCount: categories.length,
         itemBuilder: (context, index) {
@@ -49,15 +50,15 @@ class CategoriesScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    width: 60,
-                    height: 60,
+                    width: ResponsiveUtils.isSmallPhone(context) ? 50 : 60,
+                    height: ResponsiveUtils.isSmallPhone(context) ? 50 : 60,
                     decoration: BoxDecoration(
                       color: (category['color'] as Color).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(30),
+                      borderRadius: BorderRadius.circular(ResponsiveUtils.isSmallPhone(context) ? 25 : 30),
                     ),
                     child: Icon(
                       category['icon'] as IconData,
-                      size: 32,
+                      size: ResponsiveUtils.isSmallPhone(context) ? 28 : 32,
                       color: category['color'] as Color,
                     ),
                   ),

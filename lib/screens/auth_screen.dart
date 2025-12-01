@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../theme/app_theme.dart';
 import '../widgets/buttons.dart';
+import '../utils/responsive_utils.dart';
 
 class AuthScreen extends StatefulWidget {
   static const routeName = '/auth';
@@ -33,19 +34,26 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isSmallScreen = ResponsiveUtils.isSmallPhone(context);
+    final headerHeight = isSmallScreen ? 220.0 : (ResponsiveUtils.isMediumPhone(context) ? 260.0 : 300.0);
+    final logoSize = ResponsiveUtils.scaleFontSize(80, context);
+    final circleRadius = isSmallScreen ? 70.0 : 100.0;
+    final horizontalPadding = ResponsiveUtils.getHorizontalPadding(context);
+    final verticalSpacing = ResponsiveUtils.getVerticalSpacing(context);
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
           children: [
             // Header
             Container(
-              height: 300,
+              height: headerHeight,
               width: double.infinity,
               decoration: BoxDecoration(
                 color: AppTheme.primaryColor,
                 borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(40),
-                  bottomRight: Radius.circular(40),
+                  bottomLeft: Radius.circular(ResponsiveUtils.isSmallPhone(context) ? 32 : 40),
+                  bottomRight: Radius.circular(ResponsiveUtils.isSmallPhone(context) ? 32 : 40),
                 ),
               ),
               child: Stack(
@@ -54,7 +62,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     top: -50,
                     right: -50,
                     child: CircleAvatar(
-                      radius: 100,
+                      radius: circleRadius,
                       backgroundColor: Colors.white.withValues(alpha: 0.1),
                     ),
                   ),
@@ -62,7 +70,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     bottom: -50,
                     left: -50,
                     child: CircleAvatar(
-                      radius: 100,
+                      radius: circleRadius,
                       backgroundColor: Colors.white.withValues(alpha: 0.1),
                     ),
                   ),
@@ -72,14 +80,15 @@ class _AuthScreenState extends State<AuthScreen> {
                       children: [
                         Icon(
                           Icons.shopping_bag_outlined,
-                          size: 80,
+                          size: logoSize,
                           color: Colors.white,
                         ),
-                        SizedBox(height: 16),
+                        SizedBox(height: isSmallScreen ? 8 : 16),
                         Text(
                           'ProShop',
                           style: Theme.of(context).textTheme.displayLarge?.copyWith(
                                 color: Colors.white,
+                                fontSize: ResponsiveUtils.scaleFontSize(32, context),
                               ),
                         ),
                       ],
@@ -90,24 +99,28 @@ class _AuthScreenState extends State<AuthScreen> {
             ),
             // Form
             Padding(
-              padding: EdgeInsets.all(24),
+              padding: EdgeInsets.all(horizontalPadding),
               child: Form(
                 key: _formKey,
                 child: Column(
                   children: [
-                    SizedBox(height: 24),
+                    SizedBox(height: verticalSpacing),
                     Text(
                       _isLogin ? 'Welcome Back!' : 'Create Account',
-                      style: Theme.of(context).textTheme.displayMedium,
+                      style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                            fontSize: ResponsiveUtils.scaleFontSize(24, context),
+                          ),
                     ),
-                    SizedBox(height: 8),
+                    SizedBox(height: isSmallScreen ? 4 : 8),
                     Text(
                       _isLogin
                           ? 'Login to continue shopping'
                           : 'Sign up to get started',
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontSize: ResponsiveUtils.scaleFontSize(14, context),
+                          ),
                     ),
-                    SizedBox(height: 32),
+                    SizedBox(height: isSmallScreen ? 24 : 32),
                     if (!_isLogin) ...[
                       TextFormField(
                         controller: _nameController,
@@ -122,7 +135,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           return null;
                         },
                       ),
-                      SizedBox(height: 16),
+                      SizedBox(height: isSmallScreen ? 12 : 16),
                     ],
                     TextFormField(
                       controller: _emailController,
@@ -138,7 +151,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         return null;
                       },
                     ),
-                    SizedBox(height: 16),
+                    SizedBox(height: isSmallScreen ? 12 : 16),
                     TextFormField(
                       controller: _passwordController,
                       obscureText: true,
@@ -154,24 +167,27 @@ class _AuthScreenState extends State<AuthScreen> {
                       },
                     ),
                     if (_isLogin) ...[
-                      SizedBox(height: 8),
+                      SizedBox(height: isSmallScreen ? 4 : 8),
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
                           onPressed: () {},
                           child: Text(
                             'Forgot Password?',
-                            style: TextStyle(color: AppTheme.textSecondary),
+                            style: TextStyle(
+                              color: AppTheme.textSecondary,
+                              fontSize: ResponsiveUtils.scaleFontSize(14, context),
+                            ),
                           ),
                         ),
                       ),
                     ],
-                    SizedBox(height: 32),
+                    SizedBox(height: isSmallScreen ? 24 : 32),
                     PrimaryButton(
                       text: _isLogin ? 'Login' : 'Sign Up',
                       onPressed: _submit,
                     ),
-                    SizedBox(height: 24),
+                    SizedBox(height: isSmallScreen ? 16 : 24),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -179,7 +195,10 @@ class _AuthScreenState extends State<AuthScreen> {
                           _isLogin
                               ? "Don't have an account? "
                               : "Already have an account? ",
-                          style: TextStyle(color: AppTheme.textSecondary),
+                          style: TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: ResponsiveUtils.scaleFontSize(14, context),
+                          ),
                         ),
                         GestureDetector(
                           onTap: () {
@@ -192,6 +211,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             style: TextStyle(
                               color: AppTheme.primaryColor,
                               fontWeight: FontWeight.bold,
+                              fontSize: ResponsiveUtils.scaleFontSize(14, context),
                             ),
                           ),
                         ),

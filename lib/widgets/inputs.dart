@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../utils/responsive_utils.dart';
 
 class CustomTextField extends StatelessWidget {
   final String hintText;
@@ -21,6 +22,9 @@ class CustomTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final horizontalPadding = ResponsiveUtils.getHorizontalPadding(context);
+    final verticalPadding = ResponsiveUtils.isSmallPhone(context) ? 12.0 : 16.0;
+    
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
@@ -41,7 +45,10 @@ class CustomTextField extends StatelessWidget {
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: horizontalPadding,
+            vertical: verticalPadding,
+          ),
         ),
       ),
     );

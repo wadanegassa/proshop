@@ -5,6 +5,7 @@ import '../models/product.dart';
 import '../providers/cart_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/buttons.dart';
+import '../utils/responsive_utils.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   static const routeName = '/product-detail';
@@ -14,7 +15,10 @@ class ProductDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final product = ModalRoute.of(context)!.settings.arguments as Product;
-    final isDesktop = MediaQuery.of(context).size.width >= 1100;
+    final isDesktop = ResponsiveUtils.isDesktop(context);
+    final imageHeight = ResponsiveUtils.getProductDetailImageHeight(context);
+    final horizontalPadding = ResponsiveUtils.getHorizontalPadding(context);
+    final isSmallScreen = ResponsiveUtils.isSmallPhone(context);
 
     if (isDesktop) {
       return Scaffold(
@@ -112,9 +116,9 @@ class ProductDetailScreen extends StatelessWidget {
                     SizedBox(height: 16),
                     Row(
                       children: [
-                        _buildColorDot(Colors.black, true),
-                        _buildColorDot(Colors.blue, false),
-                        _buildColorDot(Colors.red, false),
+                        _buildColorDot(Colors.black, true, context),
+                        _buildColorDot(Colors.blue, false, context),
+                        _buildColorDot(Colors.red, false, context),
                       ],
                     ),
                     SizedBox(height: 48),
@@ -164,7 +168,7 @@ class ProductDetailScreen extends StatelessWidget {
           CustomScrollView(
             slivers: [
               SliverAppBar(
-                expandedHeight: 400,
+                expandedHeight: imageHeight,
                 pinned: true,
                 backgroundColor: Colors.white,
                 elevation: 0,
@@ -201,7 +205,7 @@ class ProductDetailScreen extends StatelessWidget {
                   ),
                   transform: Matrix4.translationValues(0, -20, 0),
                   child: Padding(
-                    padding: EdgeInsets.all(24),
+                    padding: EdgeInsets.all(horizontalPadding),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -214,7 +218,7 @@ class ProductDetailScreen extends StatelessWidget {
                                 style: Theme.of(context).textTheme.displayMedium,
                               ),
                             ),
-                            SizedBox(width: 16),
+                            SizedBox(width: isSmallScreen ? 12 : 16),
                             Text(
                               '\$${product.price}',
                               style: Theme.of(context).textTheme.displayMedium?.copyWith(
@@ -239,7 +243,7 @@ class ProductDetailScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                        SizedBox(height: 24),
+                        SizedBox(height: isSmallScreen ? 16 : 24),
                         Text(
                           'Description',
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -260,15 +264,15 @@ class ProductDetailScreen extends StatelessWidget {
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
-                        SizedBox(height: 12),
+                        SizedBox(height: isSmallScreen ? 8 : 12),
                         Row(
                           children: [
-                            _buildColorDot(Colors.black, true),
-                            _buildColorDot(Colors.blue, false),
-                            _buildColorDot(Colors.red, false),
+                            _buildColorDot(Colors.black, true, context),
+                            _buildColorDot(Colors.blue, false, context),
+                            _buildColorDot(Colors.red, false, context),
                           ],
                         ),
-                        SizedBox(height: 100), // Space for bottom bar
+                        SizedBox(height: isSmallScreen ? 80 : 100), // Space for bottom bar
                       ],
                     ),
                   ),
@@ -281,7 +285,7 @@ class ProductDetailScreen extends StatelessWidget {
             left: 0,
             right: 0,
             child: Container(
-              padding: EdgeInsets.all(24),
+              padding: EdgeInsets.all(horizontalPadding),
               decoration: BoxDecoration(
                 color: Colors.white,
                 boxShadow: AppTheme.shadowLg,
@@ -305,7 +309,7 @@ class ProductDetailScreen extends StatelessWidget {
                       },
                     ),
                   ),
-                  SizedBox(width: 16),
+                  SizedBox(width: isSmallScreen ? 12 : 16),
                   Expanded(
                     child: PrimaryButton(
                       text: 'Buy Now',
@@ -325,7 +329,8 @@ class ProductDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildColorDot(Color color, bool isSelected) {
+  Widget _buildColorDot(Color color, bool isSelected, BuildContext context) {
+    final isSmallScreen = ResponsiveUtils.isSmallPhone(context);
     return Container(
       margin: EdgeInsets.only(right: 12),
       padding: EdgeInsets.all(4),
@@ -334,8 +339,8 @@ class ProductDetailScreen extends StatelessWidget {
         border: isSelected ? Border.all(color: color, width: 2) : null,
       ),
       child: Container(
-        width: 24,
-        height: 24,
+        width: isSmallScreen ? 20 : 24,
+        height: isSmallScreen ? 20 : 24,
         decoration: BoxDecoration(
           color: color,
           shape: BoxShape.circle,

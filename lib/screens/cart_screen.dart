@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/cart_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/buttons.dart';
+import '../utils/responsive_utils.dart';
 
 class CartScreen extends StatelessWidget {
   static const routeName = '/cart';
@@ -12,7 +13,8 @@ class CartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cart = Provider.of<CartProvider>(context);
-    final isDesktop = MediaQuery.of(context).size.width >= 1100;
+    final isDesktop = ResponsiveUtils.isDesktop(context);
+    final horizontalPadding = ResponsiveUtils.getHorizontalPadding(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -40,7 +42,7 @@ class CartScreen extends StatelessWidget {
                           ),
                         )
                       : ListView.builder(
-                          padding: EdgeInsets.all(20),
+                          padding: EdgeInsets.all(horizontalPadding),
                           itemCount: cart.items.length,
                           itemBuilder: (ctx, i) => CartItemWidget(
                             cart.items.values.toList()[i].id,
@@ -120,7 +122,7 @@ class CartScreen extends StatelessWidget {
                           ),
                         )
                       : ListView.builder(
-                          padding: EdgeInsets.all(20),
+                          padding: EdgeInsets.all(horizontalPadding),
                           itemCount: cart.items.length,
                           itemBuilder: (ctx, i) => CartItemWidget(
                             cart.items.values.toList()[i].id,
@@ -133,7 +135,7 @@ class CartScreen extends StatelessWidget {
                         ),
                 ),
                 Container(
-                  padding: EdgeInsets.all(24),
+                  padding: EdgeInsets.all(horizontalPadding),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     boxShadow: AppTheme.shadowLg,
@@ -192,6 +194,9 @@ class CartItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final imageSize = ResponsiveUtils.getCartItemImageSize(context);
+    final isSmallScreen = ResponsiveUtils.isSmallPhone(context);
+    
     return Dismissible(
       key: ValueKey(id),
       direction: DismissDirection.endToStart,
@@ -219,8 +224,8 @@ class CartItemWidget extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 80,
-              height: 80,
+              width: imageSize,
+              height: imageSize,
               decoration: BoxDecoration(
                 borderRadius: AppTheme.radius12,
                 image: DecorationImage(
@@ -229,7 +234,7 @@ class CartItemWidget extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(width: 16),
+            SizedBox(width: isSmallScreen ? 12 : 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -252,7 +257,10 @@ class CartItemWidget extends StatelessWidget {
               ),
             ),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: EdgeInsets.symmetric(
+                horizontal: isSmallScreen ? 6 : 8,
+                vertical: isSmallScreen ? 3 : 4,
+              ),
               decoration: BoxDecoration(
                 color: AppTheme.backgroundColor,
                 borderRadius: BorderRadius.circular(8),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../utils/responsive_utils.dart';
 
 class SectionHeader extends StatelessWidget {
   final String title;
@@ -13,15 +14,18 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final horizontalPadding = ResponsiveUtils.getHorizontalPadding(context);
+    final titleFontSize = ResponsiveUtils.scaleFontSize(20, context);
+    
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: AppTheme.spacing20),
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             title,
             style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                  fontSize: 20,
+                  fontSize: titleFontSize,
                 ),
           ),
           if (onSeeAll != null)

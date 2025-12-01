@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/product.dart';
 import '../theme/app_theme.dart';
 import '../providers/favorites_provider.dart';
+import '../utils/responsive_utils.dart';
 
 class ProductCard extends StatefulWidget {
   final Product product;
@@ -30,6 +31,9 @@ class _ProductCardState extends State<ProductCard> {
   Widget build(BuildContext context) {
     final favoritesProvider = Provider.of<FavoritesProvider>(context);
     final isFavorite = favoritesProvider.isFavorite(widget.product.id);
+    final isSmallScreen = ResponsiveUtils.isSmallPhone(context);
+    final cardPadding = isSmallScreen ? 8.0 : 12.0;
+    final iconSize = isSmallScreen ? 18.0 : 20.0;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -37,9 +41,9 @@ class _ProductCardState extends State<ProductCard> {
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: Duration(milliseconds: 200),
-          transform: Matrix4.identity()..scale(_isHovered ? 1.05 : 1.0),
+        child: Transform.scale(
+          scale: _isHovered ? 1.05 : 1.0,
+          child: Container(
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
             borderRadius: AppTheme.radius24,
@@ -63,21 +67,21 @@ class _ProductCardState extends State<ProductCard> {
                     ),
                     if (widget.showFavoriteButton)
                       Positioned(
-                        top: 12,
-                        right: 12,
+                        top: isSmallScreen ? 8 : 12,
+                        right: isSmallScreen ? 8 : 12,
                         child: GestureDetector(
                           onTap: () {
                             favoritesProvider.toggleFavorite(widget.product);
                           },
                           child: Container(
-                            padding: EdgeInsets.all(8),
+                            padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.9),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
                               isFavorite ? Icons.favorite : Icons.favorite_border,
-                              size: 20,
+                              size: iconSize,
                               color: isFavorite ? Colors.red : AppTheme.textSecondary,
                             ),
                           ),
@@ -88,7 +92,7 @@ class _ProductCardState extends State<ProductCard> {
               ),
               // Info
               Padding(
-                padding: EdgeInsets.all(12),
+                padding: EdgeInsets.all(cardPadding),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -96,11 +100,12 @@ class _ProductCardState extends State<ProductCard> {
                       widget.product.title,
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                             fontWeight: FontWeight.w600,
+                            fontSize: isSmallScreen ? 13 : 16,
                           ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: 4),
+                    SizedBox(height: isSmallScreen ? 2 : 4),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -109,16 +114,17 @@ class _ProductCardState extends State<ProductCard> {
                           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                                 color: AppTheme.primaryColor,
                                 fontWeight: FontWeight.bold,
+                                fontSize: isSmallScreen ? 14 : 16,
                               ),
                         ),
                         Row(
                           children: [
-                            Icon(Icons.star, size: 16, color: Colors.amber),
-                            SizedBox(width: 4),
+                            Icon(Icons.star, size: isSmallScreen ? 14 : 16, color: Colors.amber),
+                            SizedBox(width: 2),
                             Text(
                               '4.8',
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    fontSize: 12,
+                                    fontSize: isSmallScreen ? 11 : 12,
                                     fontWeight: FontWeight.w600,
                                   ),
                             ),
@@ -131,6 +137,7 @@ class _ProductCardState extends State<ProductCard> {
               ),
             ],
           ),
+        ),
         ),
       ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
     );

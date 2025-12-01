@@ -7,6 +7,7 @@ import '../screens/product_detail_screen.dart';
 import '../widgets/product_card.dart';
 import '../widgets/section_header.dart';
 import '../theme/app_theme.dart';
+import '../utils/responsive_utils.dart';
 
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});
@@ -24,7 +25,7 @@ class FavoritesScreen extends StatelessWidget {
           children: [
             SizedBox(height: 20),
             SectionHeader(title: 'Favorites'),
-            SizedBox(height: 16),
+            SizedBox(height: ResponsiveUtils.isSmallPhone(context) ? 12 : 16),
             Expanded(
               child: favoriteProducts.isEmpty
                   ? Center(
@@ -33,10 +34,10 @@ class FavoritesScreen extends StatelessWidget {
                         children: [
                           Icon(
                             Icons.favorite_border,
-                            size: 64,
+                            size: ResponsiveUtils.isSmallPhone(context) ? 56 : 64,
                             color: AppTheme.textLight,
                           ),
-                          SizedBox(height: 16),
+                          SizedBox(height: ResponsiveUtils.isSmallPhone(context) ? 12 : 16),
                           Text(
                             'No favorites yet',
                             style: Theme.of(context).textTheme.titleLarge,
@@ -52,12 +53,12 @@ class FavoritesScreen extends StatelessWidget {
                       ),
                     )
                   : GridView.builder(
-                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      padding: EdgeInsets.symmetric(horizontal: ResponsiveUtils.getHorizontalPadding(context)),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
+                        crossAxisCount: ResponsiveUtils.getGridColumns(context),
                         childAspectRatio: 0.7,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
+                        crossAxisSpacing: ResponsiveUtils.isSmallPhone(context) ? 12 : 16,
+                        mainAxisSpacing: ResponsiveUtils.isSmallPhone(context) ? 12 : 16,
                       ),
                       itemCount: favoriteProducts.length,
                       itemBuilder: (context, index) {

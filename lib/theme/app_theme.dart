@@ -56,6 +56,36 @@ class AppTheme {
     ),
   ];
 
+  // Responsive helpers
+  static double getResponsiveSpacing(double baseSpacing, BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    if (width < 375) {
+      return baseSpacing * 0.75;
+    } else if (width < 414) {
+      return baseSpacing * 0.85;
+    }
+    return baseSpacing;
+  }
+
+  static double getResponsiveFontSize(double baseSize, BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    if (width < 375) {
+      return baseSize * 0.85;
+    } else if (width < 414) {
+      return baseSize * 0.9;
+    }
+    return baseSize;
+  }
+
+  // Lighter shadow for mobile devices
+  static List<BoxShadow> get shadowXs => [
+    BoxShadow(
+      color: Colors.black.withValues(alpha: 0.03),
+      blurRadius: 5,
+      offset: Offset(0, 2),
+    ),
+  ];
+
   // ThemeData
   static ThemeData get lightTheme {
     return ThemeData(

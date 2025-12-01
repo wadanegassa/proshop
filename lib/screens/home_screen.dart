@@ -7,6 +7,7 @@ import '../widgets/inputs.dart';
 import '../widgets/product_card.dart';
 import '../widgets/section_header.dart';
 import '../providers/cart_provider.dart';
+import '../utils/responsive_utils.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -43,9 +44,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isDesktop = size.width >= 1100;
-    final isTablet = size.width >= 600 && size.width < 1100;
+    final isDesktop = ResponsiveUtils.isDesktop(context);
+    final horizontalPadding = ResponsiveUtils.getHorizontalPadding(context);
+    final heroBannerHeight = ResponsiveUtils.getHeroBannerHeight(context);
+    final productCardWidth = ResponsiveUtils.getProductCardWidth(context);
 
     return Scaffold(
       body: SafeArea(
@@ -58,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   // Header
                   Padding(
-                    padding: EdgeInsets.all(20),
+                    padding: EdgeInsets.all(horizontalPadding),
                     child: Row(
                       children: [
                         Expanded(
@@ -73,15 +75,15 @@ class _HomeScreenState extends State<HomeScreen> {
                             },
                           ),
                         ),
-                        SizedBox(width: 16),
+                        SizedBox(width: ResponsiveUtils.isSmallPhone(context) ? 8 : 16),
                         Container(
-                          padding: EdgeInsets.all(12),
+                          padding: EdgeInsets.all(ResponsiveUtils.isSmallPhone(context) ? 10 : 12),
                           decoration: BoxDecoration(
                             color: Theme.of(context).cardColor,
                             borderRadius: AppTheme.radius16,
                             boxShadow: AppTheme.shadowSm,
                           ),
-                          child: Icon(Icons.notifications_outlined),
+                          child: Icon(Icons.notifications_outlined, size: ResponsiveUtils.isSmallPhone(context) ? 20 : 24),
                         ),
                       ],
                     ),
@@ -89,8 +91,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   // Hero Banner
                   Container(
-                    margin: EdgeInsets.symmetric(horizontal: 20),
-                    height: isDesktop ? 300 : 200,
+                    margin: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                    height: heroBannerHeight,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [Color(0xFF4A6CF7), Color(0xFF7B96FF)],
@@ -106,12 +108,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           right: -20,
                           bottom: -20,
                           child: CircleAvatar(
-                            radius: isDesktop ? 120 : 80,
+                            radius: ResponsiveUtils.isSmallPhone(context) ? 60 : (isDesktop ? 120 : 80),
                             backgroundColor: Colors.white.withValues(alpha: 0.1),
                           ),
                         ),
                         Padding(
-                          padding: EdgeInsets.all(24),
+                          padding: EdgeInsets.all(ResponsiveUtils.isSmallPhone(context) ? 16 : 24),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -120,23 +122,23 @@ class _HomeScreenState extends State<HomeScreen> {
                                 'Summer Sale',
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: isDesktop ? 32 : 24,
+                                  fontSize: ResponsiveUtils.scaleFontSize(isDesktop ? 32 : 24, context),
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              SizedBox(height: 8),
+                              SizedBox(height: ResponsiveUtils.isSmallPhone(context) ? 4 : 8),
                               Text(
                                 'Get up to 50% off\non selected items',
                                 style: TextStyle(
                                   color: Colors.white.withValues(alpha: 0.9),
-                                  fontSize: isDesktop ? 20 : 16,
+                                  fontSize: ResponsiveUtils.scaleFontSize(isDesktop ? 20 : 16, context),
                                 ),
                               ),
-                              SizedBox(height: 16),
+                              SizedBox(height: ResponsiveUtils.isSmallPhone(context) ? 12 : 16),
                               Container(
                                 padding: EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
+                                  horizontal: ResponsiveUtils.isSmallPhone(context) ? 12 : 16,
+                                  vertical: ResponsiveUtils.isSmallPhone(context) ? 6 : 8,
                                 ),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
@@ -147,6 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   style: TextStyle(
                                     color: AppTheme.primaryColor,
                                     fontWeight: FontWeight.bold,
+                                    fontSize: ResponsiveUtils.scaleFontSize(14, context),
                                   ),
                                 ),
                               ),
@@ -213,18 +216,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   // Best Sellers
                   SectionHeader(title: 'Best Sellers', onSeeAll: () {}),
-                  SizedBox(height: 16),
+                  SizedBox(height: ResponsiveUtils.isSmallPhone(context) ? 12 : 16),
                   SizedBox(
-                    height: 280,
+                    height: ResponsiveUtils.isSmallPhone(context) ? 240 : 280,
                     child: ListView.separated(
-                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                       scrollDirection: Axis.horizontal,
                       itemCount: _filteredProducts.length,
-                      separatorBuilder: (_, __) => SizedBox(width: 16),
+                      separatorBuilder: (_, __) => SizedBox(width: ResponsiveUtils.isSmallPhone(context) ? 12 : 16),
                       itemBuilder: (context, index) {
                         final product = _filteredProducts[index];
                         return SizedBox(
-                          width: 180,
+                          width: productCardWidth,
                           child: ProductCard(
                             product: product,
                             onTap: () {
@@ -247,16 +250,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   // New Arrivals
                   SectionHeader(title: 'New Arrivals', onSeeAll: () {}),
-                  SizedBox(height: 16),
+                  SizedBox(height: ResponsiveUtils.isSmallPhone(context) ? 12 : 16),
                   GridView.builder(
                     shrinkWrap: true,
                     physics: NeverScrollableScrollPhysics(),
-                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: isDesktop ? 4 : (isTablet ? 3 : 2),
+                      crossAxisCount: ResponsiveUtils.getGridColumns(context),
                       childAspectRatio: 0.7,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
+                      crossAxisSpacing: ResponsiveUtils.isSmallPhone(context) ? 12 : 16,
+                      mainAxisSpacing: ResponsiveUtils.isSmallPhone(context) ? 12 : 16,
                     ),
                     itemCount: (_filteredProducts.length > 4 && !isDesktop) ? 4 : _filteredProducts.length,
                     itemBuilder: (context, index) {

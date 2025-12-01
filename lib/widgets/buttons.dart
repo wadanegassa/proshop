@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../theme/app_theme.dart';
+import '../utils/responsive_utils.dart';
 
 class PrimaryButton extends StatelessWidget {
   final String text;
@@ -18,19 +19,23 @@ class PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isSmallScreen = ResponsiveUtils.isSmallPhone(context);
+    final buttonHeight = isSmallScreen ? 48.0 : 56.0;
+    
     return SizedBox(
       width: width ?? double.infinity,
-      height: 56,
+      height: buttonHeight,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
           shadowColor: AppTheme.primaryColor.withValues(alpha: 0.4),
           elevation: 8,
+          padding: ResponsiveUtils.getButtonPadding(context),
         ),
         child: isLoading
             ? SizedBox(
-                height: 24,
-                width: 24,
+                height: isSmallScreen ? 20 : 24,
+                width: isSmallScreen ? 20 : 24,
                 child: CircularProgressIndicator(
                   color: Colors.white,
                   strokeWidth: 2,

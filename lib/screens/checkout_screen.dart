@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/cart_provider.dart';
 import '../providers/orders_provider.dart';
 import '../theme/app_theme.dart';
+import '../utils/responsive_utils.dart';
 
 class CheckoutScreen extends StatefulWidget {
   static const routeName = '/checkout';
@@ -19,6 +20,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     final cart = Provider.of<CartProvider>(context);
+    final horizontalPadding = ResponsiveUtils.getHorizontalPadding(context);
+    final isSmallScreen = ResponsiveUtils.isSmallPhone(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -28,7 +31,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         children: [
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.all(20),
+              padding: EdgeInsets.all(horizontalPadding),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -72,7 +75,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             },
                           ),
                         ),
-                        SizedBox(width: 16),
+                        SizedBox(width: isSmallScreen ? 12 : 16),
                         Expanded(
                           child: TextFormField(
                             decoration: InputDecoration(labelText: 'Zip Code'),
@@ -132,7 +135,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ),
           Padding(
-            padding: EdgeInsets.all(20),
+            padding: EdgeInsets.all(horizontalPadding),
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
