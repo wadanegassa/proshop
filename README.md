@@ -1,16 +1,27 @@
-# proshop
+# ProShop — Flutter E-Commerce App
 
-A new Flutter project.
+ProShop is a modern **frontend e-commerce app** built with Flutter. It allows users to browse products, view product details, add items to cart or favorites, and explore a clean, intuitive shopping interface.
 
-## Getting Started
+The app focuses purely on **UI/UX design** and does not include backend integration.
 
-This project is a starting point for a Flutter application.
+---
 
-A few resources to get you started if this is your first Flutter project:
+## Screenshots
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+<table>
+  <tr>
+    <td><img src="assets/screenshot1.jpg" width="250" /></td>
+    <td><img src="assets/screenshot2.jpg" width="250" /></td>
+    <td><img src="assets/screenshot3.jpg" width="250" /></td>
+    <td><img src="assets/screenshot4.jpg" width="250" /></td>
+  </tr>
+  <tr>
+    <td><img src="assets/screenshot5.jpg" width="250" /></td>
+    <td><img src="assets/screenshot6.jpg" width="250" /></td>
+    <td><img src="assets/screenshot7.jpg" width="250" /></td>
+    <td><img src="assets/screenshot8.jpg" width="250" /></td>
+  </tr>
+</table>
+
+---
