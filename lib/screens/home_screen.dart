@@ -44,227 +44,271 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = ResponsiveUtils.isDesktop(context);
+    final isSmallPhone = ResponsiveUtils.isSmallPhone(context);
     final horizontalPadding = ResponsiveUtils.getHorizontalPadding(context);
-    final heroBannerHeight = ResponsiveUtils.getHeroBannerHeight(context);
     final productCardWidth = ResponsiveUtils.getProductCardWidth(context);
 
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: 1200),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header
-                  Padding(
-                    padding: EdgeInsets.all(horizontalPadding),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: CustomTextField(
-                            controller: _searchController,
-                            hintText: 'Search products...',
-                            prefixIcon: Icons.search,
-                            onChanged: (value) {
-                              setState(() {
-                                _searchQuery = value.toLowerCase();
-                              });
-                            },
+        child: CustomScrollView(
+          slivers: [
+            // Header with Greeting & Profile
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  horizontalPadding,
+                  16,
+                  horizontalPadding,
+                  8,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Hello! 👋',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontSize: isSmallPhone ? 13 : 14,
+                            ),
                           ),
-                        ),
-                        SizedBox(width: ResponsiveUtils.isSmallPhone(context) ? 8 : 16),
+                          SizedBox(height: 2),
+                          Text(
+                            'Welcome back',
+                            style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                              fontSize: isSmallPhone ? 20 : 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Row(
+                      children: [
                         Container(
-                          padding: EdgeInsets.all(ResponsiveUtils.isSmallPhone(context) ? 10 : 12),
+                          padding: EdgeInsets.all(isSmallPhone ? 8 : 10),
                           decoration: BoxDecoration(
                             color: Theme.of(context).cardColor,
-                            borderRadius: AppTheme.radius16,
+                            borderRadius: BorderRadius.circular(12),
                             boxShadow: AppTheme.shadowSm,
                           ),
-                          child: Icon(Icons.notifications_outlined, size: ResponsiveUtils.isSmallPhone(context) ? 20 : 24),
+                          child: Icon(
+                            Icons.notifications_outlined,
+                            size: isSmallPhone ? 20 : 22,
+                          ),
+                        ),
+                        SizedBox(width: 12),
+                        CircleAvatar(
+                          radius: isSmallPhone ? 20 : 22,
+                          backgroundColor: AppTheme.primaryColor,
+                          child: Icon(
+                            Icons.person,
+                            color: Colors.white,
+                            size: isSmallPhone ? 20 : 22,
+                          ),
                         ),
                       ],
                     ),
-                  ),
+                  ],
+                ),
+              ),
+            ),
 
-                  // Hero Banner
-                  Container(
-                    margin: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                    height: heroBannerHeight,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Color(0xFF4A6CF7), Color(0xFF7B96FF)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: AppTheme.radius24,
-                      boxShadow: AppTheme.shadowMd,
-                    ),
-                    child: Stack(
-                      children: [
-                        Positioned(
-                          right: -20,
-                          bottom: -20,
-                          child: CircleAvatar(
-                            radius: ResponsiveUtils.isSmallPhone(context) ? 60 : (isDesktop ? 120 : 80),
-                            backgroundColor: Colors.white.withValues(alpha: 0.1),
+            // Search Bar
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: horizontalPadding,
+                  vertical: 16,
+                ),
+                child: CustomTextField(
+                  controller: _searchController,
+                  hintText: 'Search products...',
+                  prefixIcon: Icons.search,
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value.toLowerCase();
+                    });
+                  },
+                ),
+              ),
+            ),
+
+            // Hero Banner
+            SliverToBoxAdapter(
+              child: Container(
+                margin: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                height: isSmallPhone ? 160 : 180,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF4A6CF7), Color(0xFF7B96FF)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: AppTheme.shadowMd,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Stack(
+                    children: [
+                      // Decorative circles
+                      Positioned(
+                        right: -30,
+                        top: -30,
+                        child: Container(
+                          width: isSmallPhone ? 100 : 120,
+                          height: isSmallPhone ? 100 : 120,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withValues(alpha: 0.1),
                           ),
                         ),
-                        Padding(
-                          padding: EdgeInsets.all(ResponsiveUtils.isSmallPhone(context) ? 16 : 24),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Summer Sale',
+                      ),
+                      Positioned(
+                        left: -20,
+                        bottom: -20,
+                        child: Container(
+                          width: isSmallPhone ? 60 : 80,
+                          height: isSmallPhone ? 60 : 80,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withValues(alpha: 0.05),
+                          ),
+                        ),
+                      ),
+                      // Content
+                      Padding(
+                        padding: EdgeInsets.all(isSmallPhone ? 16 : 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                'SPECIAL OFFER',
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: ResponsiveUtils.scaleFontSize(isDesktop ? 32 : 24, context),
+                                  fontSize: isSmallPhone ? 9 : 10,
                                   fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.8,
                                 ),
                               ),
-                              SizedBox(height: ResponsiveUtils.isSmallPhone(context) ? 4 : 8),
-                              Text(
-                                'Get up to 50% off\non selected items',
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                  fontSize: ResponsiveUtils.scaleFontSize(isDesktop ? 20 : 16, context),
-                                ),
+                            ),
+                            SizedBox(height: isSmallPhone ? 6 : 10),
+                            Text(
+                              'Summer Sale',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: isSmallPhone ? 20 : 24,
+                                fontWeight: FontWeight.bold,
+                                height: 1.1,
                               ),
-                              SizedBox(height: ResponsiveUtils.isSmallPhone(context) ? 12 : 16),
-                              Container(
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Up to 50% off',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.95),
+                                fontSize: isSmallPhone ? 13 : 15,
+                              ),
+                            ),
+                            SizedBox(height: isSmallPhone ? 10 : 14),
+                            GestureDetector(
+                              onTap: () {},
+                              child: Container(
                                 padding: EdgeInsets.symmetric(
-                                  horizontal: ResponsiveUtils.isSmallPhone(context) ? 12 : 16,
-                                  vertical: ResponsiveUtils.isSmallPhone(context) ? 6 : 8,
+                                  horizontal: isSmallPhone ? 14 : 18,
+                                  vertical: isSmallPhone ? 7 : 9,
                                 ),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
-                                  borderRadius: BorderRadius.circular(30),
+                                  borderRadius: BorderRadius.circular(25),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.1),
+                                      blurRadius: 8,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
                                 ),
                                 child: Text(
                                   'Shop Now',
                                   style: TextStyle(
                                     color: AppTheme.primaryColor,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: ResponsiveUtils.scaleFontSize(14, context),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-
-                  SizedBox(height: 32),
-
-                  // Categories
-                  SizedBox(
-                    height: 40,
-                    child: ListView(
-                      padding: EdgeInsets.symmetric(horizontal: 20),
-                      scrollDirection: Axis.horizontal,
-                      children: [
-                        'All',
-                        'Electronics',
-                        'Fashion',
-                        'Home',
-                        'Sports',
-                        'Books'
-                      ].map((category) {
-                        final isSelected = _selectedCategory == category;
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _selectedCategory = category;
-                            });
-                          },
-                          child: MouseRegion(
-                            cursor: SystemMouseCursors.click,
-                            child: Container(
-                              margin: EdgeInsets.only(right: 12),
-                              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: isSelected ? AppTheme.primaryColor : Theme.of(context).cardColor,
-                                borderRadius: AppTheme.radius16,
-                                border: Border.all(
-                                  color: isSelected ? AppTheme.primaryColor : AppTheme.borderColor,
-                                ),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  category,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    color: isSelected ? Colors.white : AppTheme.textPrimary,
+                                    fontSize: isSmallPhone ? 12 : 13,
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
+                ),
+              ),
+            ),
 
-                  SizedBox(height: 32),
+            SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-                  // Best Sellers
-                  SectionHeader(title: 'Best Sellers', onSeeAll: () {}),
-                  SizedBox(height: ResponsiveUtils.isSmallPhone(context) ? 12 : 16),
-                  SizedBox(
-                    height: ResponsiveUtils.isSmallPhone(context) ? 240 : 280,
-                    child: ListView.separated(
-                      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                      scrollDirection: Axis.horizontal,
-                      itemCount: _filteredProducts.length,
-                      separatorBuilder: (_, __) => SizedBox(width: ResponsiveUtils.isSmallPhone(context) ? 12 : 16),
-                      itemBuilder: (context, index) {
-                        final product = _filteredProducts[index];
-                        return SizedBox(
-                          width: productCardWidth,
-                          child: ProductCard(
-                            product: product,
-                            onTap: () {
-                              Navigator.of(context).pushNamed(
-                                ProductDetailScreen.routeName,
-                                arguments: product,
-                              );
-                            },
-                            onAddToCart: () {
-                              Provider.of<CartProvider>(context, listen: false)
-                                  .addItem(product);
-                            },
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+            // Categories
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: isSmallPhone ? 44 : 48,
+                child: ListView(
+                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    _buildCategoryChip('All', Icons.grid_view),
+                    _buildCategoryChip('Electronics', Icons.devices),
+                    _buildCategoryChip('Fashion', Icons.checkroom),
+                    _buildCategoryChip('Home', Icons.home),
+                    _buildCategoryChip('Sports', Icons.sports_basketball),
+                    _buildCategoryChip('Books', Icons.menu_book),
+                  ],
+                ),
+              ),
+            ),
 
-                  SizedBox(height: 32),
+            SliverToBoxAdapter(child: SizedBox(height: 28)),
 
-                  // New Arrivals
-                  SectionHeader(title: 'New Arrivals', onSeeAll: () {}),
-                  SizedBox(height: ResponsiveUtils.isSmallPhone(context) ? 12 : 16),
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: ResponsiveUtils.getGridColumns(context),
-                      childAspectRatio: 0.7,
-                      crossAxisSpacing: ResponsiveUtils.isSmallPhone(context) ? 12 : 16,
-                      mainAxisSpacing: ResponsiveUtils.isSmallPhone(context) ? 12 : 16,
-                    ),
-                    itemCount: (_filteredProducts.length > 4 && !isDesktop) ? 4 : _filteredProducts.length,
-                    itemBuilder: (context, index) {
-                      final product = _filteredProducts[index];
-                      return ProductCard(
+            // Best Sellers Section
+            SliverToBoxAdapter(
+              child: SectionHeader(
+                title: 'Best Sellers',
+                onSeeAll: () {},
+              ),
+            ),
+            
+            SliverToBoxAdapter(child: SizedBox(height: 16)),
+
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: isSmallPhone ? 230 : 260,
+                child: ListView.separated(
+                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _filteredProducts.length,
+                  separatorBuilder: (_, __) => SizedBox(width: isSmallPhone ? 12 : 16),
+                  itemBuilder: (context, index) {
+                    final product = _filteredProducts[index];
+                    return SizedBox(
+                      width: productCardWidth,
+                      child: ProductCard(
                         product: product,
                         onTap: () {
                           Navigator.of(context).pushNamed(
@@ -276,14 +320,108 @@ class _HomeScreenState extends State<HomeScreen> {
                           Provider.of<CartProvider>(context, listen: false)
                               .addItem(product);
                         },
-                      );
-                    },
-                  ),
-                  SizedBox(height: 32),
-                ],
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
-          ),
+
+            SliverToBoxAdapter(child: SizedBox(height: 28)),
+
+            // New Arrivals Section
+            SliverToBoxAdapter(
+              child: SectionHeader(
+                title: 'New Arrivals',
+                onSeeAll: () {},
+              ),
+            ),
+
+            SliverToBoxAdapter(child: SizedBox(height: 16)),
+
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+              sliver: SliverGrid(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: ResponsiveUtils.getGridColumns(context),
+                  childAspectRatio: ResponsiveUtils.getGridChildAspectRatio(context),
+                  crossAxisSpacing: isSmallPhone ? 12 : 16,
+                  mainAxisSpacing: isSmallPhone ? 12 : 16,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final product = _filteredProducts[index];
+                    return ProductCard(
+                      product: product,
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          ProductDetailScreen.routeName,
+                          arguments: product,
+                        );
+                      },
+                      onAddToCart: () {
+                        Provider.of<CartProvider>(context, listen: false)
+                            .addItem(product);
+                      },
+                    );
+                  },
+                  childCount: _filteredProducts.length > 6 ? 6 : _filteredProducts.length,
+                ),
+              ),
+            ),
+
+            SliverToBoxAdapter(child: SizedBox(height: 32)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryChip(String category, IconData icon) {
+    final isSelected = _selectedCategory == category;
+    final isSmallPhone = ResponsiveUtils.isSmallPhone(context);
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedCategory = category;
+        });
+      },
+      child: Container(
+        margin: EdgeInsets.only(right: 10),
+        padding: EdgeInsets.symmetric(
+          horizontal: isSmallPhone ? 14 : 16,
+          vertical: isSmallPhone ? 10 : 12,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? AppTheme.primaryColor 
+              : Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: isSelected ? AppTheme.shadowSm : [],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: isSmallPhone ? 16 : 18,
+              color: isSelected 
+                  ? Colors.white 
+                  : Theme.of(context).textTheme.bodyLarge?.color,
+            ),
+            SizedBox(width: 6),
+            Text(
+              category,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: isSmallPhone ? 13 : 14,
+                color: isSelected 
+                    ? Colors.white 
+                    : Theme.of(context).textTheme.bodyLarge?.color,
+              ),
+            ),
+          ],
         ),
       ),
     );

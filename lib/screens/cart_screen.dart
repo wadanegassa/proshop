@@ -32,7 +32,7 @@ class CartScreen extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(Icons.shopping_cart_outlined,
-                                  size: 64, color: AppTheme.textLight),
+                                  size: 64, color: Theme.of(context).hintColor),
                               SizedBox(height: 16),
                               Text(
                                 'Your cart is empty',
@@ -60,7 +60,7 @@ class CartScreen extends StatelessWidget {
                     margin: EdgeInsets.all(20),
                     padding: EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).cardColor,
                       boxShadow: AppTheme.shadowMd,
                       borderRadius: BorderRadius.circular(24),
                     ),
@@ -112,7 +112,7 @@ class CartScreen extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(Icons.shopping_cart_outlined,
-                                  size: 64, color: AppTheme.textLight),
+                                  size: 64, color: Theme.of(context).hintColor),
                               SizedBox(height: 16),
                               Text(
                                 'Your cart is empty',
@@ -137,7 +137,7 @@ class CartScreen extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(horizontalPadding),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).cardColor,
                     boxShadow: AppTheme.shadowLg,
                     borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                   ),
@@ -262,12 +262,14 @@ class CartItemWidget extends StatelessWidget {
                 vertical: isSmallScreen ? 3 : 4,
               ),
               decoration: BoxDecoration(
-                color: AppTheme.backgroundColor,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 'x$quantity',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],

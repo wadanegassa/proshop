@@ -11,101 +11,74 @@ class ResponsiveUtils {
 
   /// Check if current screen is a small phone (< 375px)
   static bool isSmallPhone(BuildContext context) {
-    return MediaQuery.of(context).size.width < smallPhoneMaxWidth;
+    return MediaQuery.of(context).size.width < 360;
   }
 
-  /// Check if current screen is a medium phone (375-414px)
+  /// Check if current screen is a medium phone (360-414px)
   static bool isMediumPhone(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    return width >= smallPhoneMaxWidth && width < mediumPhoneMaxWidth;
+    return width >= 360 && width < 414;
   }
 
-  /// Check if current screen is a large phone (414-480px)
+  /// Check if current screen is a large phone (414-480px) - Retained for consistency, but new logic might not use it directly.
+  /// Consider if this method is still needed with the new breakpoint definitions.
   static bool isLargePhone(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    return width >= mediumPhoneMaxWidth && width < largePhoneMaxWidth;
+    return width >= 414 && width < 480.0; // Using original largePhoneMaxWidth for upper bound
   }
 
-  /// Check if current screen is a tablet (480-768px)
+  /// Check if current screen is a tablet (768-1024px)
   static bool isTablet(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    return width >= largePhoneMaxWidth && width < tabletMaxWidth;
+    return width >= 768 && width < 1024;
   }
 
-  /// Check if current screen is desktop-sized (>= 1100px)
+  /// Check if current screen is desktop-sized (>= 1024px)
   static bool isDesktop(BuildContext context) {
-    return MediaQuery.of(context).size.width >= desktopMinWidth;
+    return MediaQuery.of(context).size.width >= 1024;
   }
 
   /// Check if current screen is mobile (< 768px)
   static bool isMobile(BuildContext context) {
-    return MediaQuery.of(context).size.width < tabletMaxWidth;
+    return MediaQuery.of(context).size.width < 768;
   }
 
   /// Get optimal grid column count based on screen size
   static int getGridColumns(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    
-    if (width < smallPhoneMaxWidth) {
-      return 1; // Very small phones: 1 column
-    } else if (width < mediumPhoneMaxWidth) {
-      return 2; // Small to medium phones: 2 columns
-    } else if (width < largePhoneMaxWidth) {
-      return 2; // Medium to large phones: 2 columns
-    } else if (width < tabletMaxWidth) {
-      return 2; // Large phones: 2-3 columns
-    } else if (width < desktopMinWidth) {
-      return 3; // Tablets: 3 columns
-    } else {
-      return 4; // Desktop: 4 columns
-    }
+    if (isDesktop(context)) return 4;
+    if (isTablet(context)) return 3;
+    return 2;
   }
 
   /// Get responsive horizontal padding
   static double getHorizontalPadding(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    
-    if (width < smallPhoneMaxWidth) {
-      return 12.0; // Smaller padding for very small screens
-    } else if (width < mediumPhoneMaxWidth) {
-      return 16.0;
-    } else if (width < largePhoneMaxWidth) {
-      return 20.0;
-    } else if (width < tabletMaxWidth) {
-      return 24.0;
-    } else {
-      return 32.0; // Larger padding for tablets and desktop
-    }
+    if (isSmallPhone(context)) return 16.0;
+    if (isMediumPhone(context)) return 18.0;
+    if (isTablet(context)) return 32.0;
+    if (isDesktop(context)) return 48.0;
+    return 20.0;
   }
 
   /// Get responsive vertical spacing
   static double getVerticalSpacing(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    
-    if (width < smallPhoneMaxWidth) {
-      return 16.0;
-    } else if (width < mediumPhoneMaxWidth) {
-      return 20.0;
-    } else if (width < tabletMaxWidth) {
-      return 24.0;
-    } else {
-      return 32.0;
-    }
+    if (isSmallPhone(context)) return 12.0;
+    if (isMediumPhone(context)) return 16.0;
+    return 20.0;
   }
 
   /// Scale font size based on screen size
   static double scaleFontSize(double baseSize, BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     
-    if (width < smallPhoneMaxWidth) {
+    if (width < 360) {
       return baseSize * 0.85; // 15% smaller on very small screens
-    } else if (width < mediumPhoneMaxWidth) {
+    } else if (width < 414) {
       return baseSize * 0.9; // 10% smaller on small screens
-    } else if (width < largePhoneMaxWidth) {
+    } else if (width < 480.0) {
       return baseSize; // Base size on medium screens
-    } else if (width < tabletMaxWidth) {
+    } else if (width < 768) {
       return baseSize * 1.05; // 5% larger on large phones
-    } else if (width < desktopMinWidth) {
+    } else if (width < 1024) {
       return baseSize * 1.1; // 10% larger on tablets
     } else {
       return baseSize * 1.15; // 15% larger on desktop
@@ -114,38 +87,44 @@ class ResponsiveUtils {
 
   /// Get hero banner height based on screen size
   static double getHeroBannerHeight(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    
-    if (width < smallPhoneMaxWidth) {
-      return 160.0; // Smaller banner for very small screens
-    } else if (width < mediumPhoneMaxWidth) {
-      return 180.0;
-    } else if (width < largePhoneMaxWidth) {
-      return 200.0;
-    } else if (width < tabletMaxWidth) {
-      return 220.0;
-    } else if (width < desktopMinWidth) {
-      return 250.0;
-    } else {
-      return 300.0; // Full height on desktop
-    }
+    if (isSmallPhone(context)) return 160.0;
+    if (isMediumPhone(context)) return 180.0;
+    if (isTablet(context)) return 250.0;
+    if (isDesktop(context)) return 300.0;
+    return 200.0;
   }
 
   /// Get product card width for horizontal scrolling lists
   static double getProductCardWidth(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     
-    if (width < smallPhoneMaxWidth) {
-      return 140.0; // Narrower cards on very small screens
-    } else if (width < mediumPhoneMaxWidth) {
-      return 160.0;
-    } else if (width < largePhoneMaxWidth) {
-      return 180.0;
-    } else if (width < tabletMaxWidth) {
-      return 200.0;
+    if (width < 360) {
+      return 135.0; // Narrower cards on very small screens
+    } else if (width < 414) {
+      return 155.0;
+    } else if (width < 480.0) {
+      return 175.0;
+    } else if (width < 768) {
+      return 190.0;
     } else {
-      return 220.0;
+      return 210.0;
     }
+  }
+
+  /// Get product card height for grids
+  static double getProductCardHeight(BuildContext context) {
+    if (isSmallPhone(context)) return 220.0;
+    if (isMediumPhone(context)) return 240.0;
+    if (isTablet(context)) return 280.0;
+    return 260.0;
+  }
+
+  /// Get grid child aspect ratio for product grids
+  static double getGridChildAspectRatio(BuildContext context) {
+    if (isSmallPhone(context)) return 0.68;
+    if (isMediumPhone(context)) return 0.70;
+    if (isTablet(context)) return 0.72;
+    return 0.70;
   }
 
   /// Get responsive border radius
