@@ -1,5 +1,7 @@
 class ApiConstants {
-  static const String baseUrl = 'http://localhost:5000/api/v1'; // Use direct localhost for now; might need 10.0.2.2 for Android emulator
+  static const String baseUrl = 'http://10.232.87.165:5000/api/v1'; // Local IP for mobile/emulator access
+  // For web use: 'http://localhost:5000/api/v1'
+  // For Android Emulator use: 'http://10.0.2.2:5000/api/v1'
   
   // Auth endpoints
   static const String register = '$baseUrl/auth/register';

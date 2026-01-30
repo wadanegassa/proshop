@@ -1,0 +1,175 @@
+:root {
+  --background: #0D0E0F;
+  --surface: #151718;
+  --surface-hover: #1C1E1F;
+  --primary: #FF6C2F;
+  --primary-glow: rgba(255, 108, 47, 0.15);
+  --text-primary: #E1E3E5;
+  --text-secondary: #9BA3A7;
+  --text-muted: #62696C;
+  --divider: rgba(255, 255, 255, 0.04);
+  --success: #3BB673;
+  --error: #CF4449;
+  --warning: #D8A033;
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--background);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Scrollbar Refinement */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--surface);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Larkon Utility Classes */
+.larkon-card {
+  background: var(--surface);
+  border: 1px solid var(--divider);
+  border-radius: 12px;
+  padding: 24px;
+  transition: var(--transition);
+}
+
+.larkon-card:hover {
+  border-color: rgba(255, 108, 47, 0.1);
+}
+
+.larkon-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.larkon-table th {
+  text-align: left;
+  padding: 14px 20px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-weight: 800;
+  border-bottom: 1px solid var(--divider);
+}
+
+.larkon-table td {
+  padding: 16px 20px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--divider);
+}
+
+.larkon-table tr:last-child td {
+  border-bottom: none;
+}
+
+.larkon-badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-success {
+  background: rgba(59, 182, 115, 0.1);
+  color: var(--success);
+}
+
+.badge-error {
+  background: rgba(207, 68, 73, 0.1);
+  color: var(--error);
+}
+
+.badge-orange {
+  background: var(--primary-glow);
+  color: var(--primary);
+}
+
+.badge-gray {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+}
+
+.orange-text {
+  color: var(--primary);
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+  transition: var(--transition);
+}
+
+input,
+select,
+textarea {
+  font-family: inherit;
+  background: var(--background);
+  border: 1px solid var(--divider);
+  color: var(--text-primary);
+  border-radius: 4px;
+  outline: none;
+}
+
+/* Custom Checkbox Styling */
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--surface-hover);
+  border: 1px solid var(--divider);
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+input[type="checkbox"]:checked {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+input[type="checkbox"]:checked::after {
+  content: '✓';
+  color: var(--background);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+input[type="checkbox"]:hover {
+  border-color: var(--text-muted);
+}

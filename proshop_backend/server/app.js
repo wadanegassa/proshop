@@ -27,6 +27,8 @@ const categoryRouter = require('./routes/categoryRoutes');
 const orderRouter = require('./routes/orderRoutes');
 const cartRouter = require('./routes/cartRoutes');
 const analyticsRouter = require('./routes/analyticsRoutes');
+const uploadRouter = require('./routes/uploadRoutes');
+const path = require('path');
 
 // ...
 
@@ -37,7 +39,12 @@ app.use('/api/v1/products', productRouter);
 app.use('/api/v1/categories', categoryRouter);
 app.use('/api/v1/orders', orderRouter);
 app.use('/api/v1/cart', cartRouter);
+app.use('/api/v1/cart', cartRouter);
 app.use('/api/v1/analytics', analyticsRouter);
+app.use('/api/v1/upload', uploadRouter);
+
+const __dirname1 = path.resolve();
+app.use('/uploads', express.static(path.join(__dirname1, '/uploads')));
 
 
 // Handle Unhandled Routes

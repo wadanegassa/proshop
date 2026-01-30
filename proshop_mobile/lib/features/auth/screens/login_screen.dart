@@ -21,15 +21,20 @@ class _LoginScreenState extends State<LoginScreen> {
   void _login() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      final success = await Provider.of<AuthProvider>(context, listen: false)
-          .login(_emailController.text, _passwordController.text);
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final success = await authProvider.login(
+        _emailController.text,
+        _passwordController.text,
+      );
+      
+      if (!mounted) return;
       setState(() => _isLoading = false);
 
       if (success) {
         Navigator.pushReplacementNamed(context, AppRoutes.initial);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid credentials')),
+          SnackBar(content: Text(authProvider.error ?? 'Invalid credentials')),
         );
       }
     }
