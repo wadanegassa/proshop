@@ -1,135 +1,99 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/constants/admin_colors.dart';
+import '../../../providers/analytics_provider.dart';
 
 import '../widgets/performance_chart.dart';
 import '../widgets/conversions_gauge.dart';
 import '../widgets/sessions_by_country.dart';
 import '../widgets/top_pages_table.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
   @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() => context.read<AnalyticsProvider>().fetchAnalytics());
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.only(bottom: 40),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Welcome Banner
-          // Alert Banner
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF422C2C), // Brownish dark background
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFF633636)),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.warning_amber_rounded, color: Color(0xFFE56A6A), size: 20),
-                SizedBox(width: 12),
-                Text(
-                  'We regret to inform you that our server is currently experiencing technical difficulties.',
-                  style: TextStyle(color: Color(0xFFE56A6A), fontSize: 13, fontWeight: FontWeight.w500),
-                ),
-              ],
-            ),
-          ),
-          
-          const SizedBox(height: 32),
-          
-          // KPI Grid
-          GridView.count(
-            crossAxisCount: 4,
-            shrinkWrap: true,
-            crossAxisSpacing: 24,
-            mainAxisSpacing: 24,
-            childAspectRatio: 1.8,
-            physics: const NeverScrollableScrollPhysics(),
-            children: const [
-              _KPICard(
-                title: 'Total Orders',
-                value: '13,647',
-                trend: '+ 2.3% Last Week',
-                isPositive: true,
-                icon: Icons.shopping_basket_outlined,
-                color: AdminColors.primary,
-              ),
-              _KPICard(
-                title: 'New Leads',
-                value: '9,526',
-                trend: '+ 8.1% Last Month',
-                isPositive: true,
-                icon: Icons.lightbulb_outline,
-                color: AdminColors.primary,
-              ),
-              _KPICard(
-                title: 'Deals',
-                value: '976',
-                trend: '- 0.3% Last Month',
-                isPositive: false,
-                icon: Icons.local_offer_outlined,
-                color: AdminColors.primary,
-              ),
-              _KPICard(
-                title: 'Booked Revenue',
-                value: r'$123.6k',
-                trend: '+ 10.6% Last Month',
-                isPositive: true,
-                icon: Icons.attach_money_rounded,
-                color: AdminColors.primary,
-              ),
-            ],
-          ),
-          
-          const SizedBox(height: 32),
-          
-          // Row 1: Main Charts
-          const Row(
+    return Consumer<AnalyticsProvider>(
+      builder: (context, provider, child) {
+        if (provider.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final data = provider.analyticsData;
+        final totalSales = data?['totalSales'] ?? 0;
+        final totalOrders = data?['totalOrders'] ?? 0;
+        final topProducts = data?['topProducts'] as List? ?? [];
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 40),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                flex: 2,
-                child: _DashContainer(
-                  title: 'Performance Analytics',
-                  child: SizedBox(height: 400, child: PerformanceChart()),
-                ),
+              // KPI Grid
+              GridView.count(
+                crossAxisCount: 2, // 2 for better layout on smaller/web screens
+                shrinkWrap: true,
+                crossAxisSpacing: 24,
+                mainAxisSpacing: 24,
+                childAspectRatio: 2.5,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  _KPICard(
+                    title: 'Total Orders',
+                    value: totalOrders.toString(),
+                    trend: '+ 0% Last Week',
+                    isPositive: true,
+                    icon: Icons.shopping_basket_outlined,
+                    color: AdminColors.primary,
+                  ),
+                  _KPICard(
+                    title: 'Total Revenue',
+                    value: '\$${totalSales.toStringAsFixed(2)}',
+                    trend: '+ 0% Last Month',
+                    isPositive: true,
+                    icon: Icons.attach_money_rounded,
+                    color: AdminColors.primary,
+                  ),
+                ],
               ),
-              SizedBox(width: 24),
-              Expanded(
-                child: _DashContainer(
-                  title: 'Conversion Breakdown',
-                  child: SizedBox(height: 400, child: ConversionsGauge()),
-                ),
+              
+              const SizedBox(height: 32),
+              
+              // Row 1: Main Charts (Simplified for proof of work)
+              const Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: _DashContainer(
+                      title: 'Performance Analytics',
+                      child: SizedBox(height: 300, child: PerformanceChart()),
+                    ),
+                  ),
+                  SizedBox(width: 24),
+                  Expanded(
+                    child: _DashContainer(
+                      title: 'Conversion Breakdown',
+                      child: SizedBox(height: 300, child: ConversionsGauge()),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          
-          const SizedBox(height: 32),
-          
-          // Row 2: Tables & Geography
-          const Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: _DashContainer(
-                  title: 'Active Sessions by Country',
-                  child: SizedBox(height: 400, child: SessionsByCountry()),
-                ),
-              ),
-              SizedBox(width: 24),
-              Expanded(
-                child: _DashContainer(
-                  title: 'Top Performing Pages',
-                  child: SizedBox(height: 400, child: TopPagesTable()),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -193,66 +157,36 @@ class _KPICard extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: AdminColors.surface,
-        borderRadius: BorderRadius.circular(4), // Less rounded
+        borderRadius: BorderRadius.circular(4),
         boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF332A25), // Dark orange/brown background
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: AdminColors.primary, size: 20),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(color: AdminColors.textMuted, fontSize: 13, fontWeight: FontWeight.normal),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    value,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF332A25),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: AdminColors.primary, size: 20),
           ),
-          Row(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Icon(
-                isPositive ? Icons.arrow_drop_up_rounded : Icons.arrow_drop_down_rounded,
-                size: 20,
-                color: isPositive ? AdminColors.success : AdminColors.error,
-              ),
               Text(
-                trend,
-                style: TextStyle(
-                  color: isPositive ? AdminColors.success : AdminColors.error,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+                title,
+                style: const TextStyle(color: AdminColors.textMuted, fontSize: 13),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
                 ),
               ),
-              if (!trend.contains('Last')) ...[ // Fallback if trend string is short
-                 const SizedBox(width: 4),
-                 const Text(
-                  'Last Month',
-                  style: TextStyle(color: AdminColors.textMuted, fontSize: 11),
-                ),
-              ]
             ],
           ),
         ],

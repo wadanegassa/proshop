@@ -12,7 +12,7 @@ import '../features/products/screens/category_list_screen.dart';
 import '../features/apps/chat/screens/chat_screen.dart';
 import '../features/apps/email/screens/email_screen.dart';
 import '../features/products/screens/inventory_screen.dart';
-import '../core/widgets/general_management_screen.dart';
+import '../features/users/screens/user_list_screen.dart';
 import '../features/apps/calendar/screens/calendar_screen.dart';
 import '../features/apps/todo/screens/todo_screen.dart';
 
@@ -78,14 +78,7 @@ class AdminRoutes {
         ['#INV-9902', 'Alice Freeman', '\$120.00', '22 Apr 2024', 'Paid'],
       ],
     ),
-    users: (context) => const GeneralManagementScreen(
-      title: 'Users',
-      columns: ['User', 'Role', 'Status', 'Last Login'],
-      data: [
-        ['admin@proshop.com', 'Super Admin', 'Active', '10 mins ago'],
-        ['staff@proshop.com', 'Editor', 'Active', 'Yesterday'],
-      ],
-    ),
+    users: (context) => const UserListScreen(),
     roles: (context) => const GeneralManagementScreen(
       title: 'Roles',
       columns: ['Role Name', 'Permissions Count', 'Users'],

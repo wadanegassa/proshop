@@ -119,32 +119,7 @@ class AdminSidebar extends StatelessWidget {
                     isActive: currentRoute == AdminRoutes.invoices,
                   ),
                   
-                  const SizedBox(height: 24),
-                  _buildSectionHeader('CUSTOMER APPS'),
-                  _SidebarItem(
-                    icon: Icons.chat_bubble_rounded,
-                    label: 'Chat',
-                    route: AdminRoutes.chat,
-                    isActive: currentRoute == AdminRoutes.chat,
-                  ),
-                  _SidebarItem(
-                    icon: Icons.email_rounded,
-                    label: 'Email',
-                    route: AdminRoutes.email,
-                    isActive: currentRoute == AdminRoutes.email,
-                  ),
-                  _SidebarItem(
-                    icon: Icons.calendar_month_rounded,
-                    label: 'Calendar',
-                    route: AdminRoutes.calendar,
-                    isActive: currentRoute == AdminRoutes.calendar,
-                  ),
-                  _SidebarItem(
-                    icon: Icons.check_circle_rounded,
-                    label: 'To-Do',
-                    route: AdminRoutes.todo,
-                    isActive: currentRoute == AdminRoutes.todo,
-                  ),
+
                   
                   const SizedBox(height: 32),
                 ],

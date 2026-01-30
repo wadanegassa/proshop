@@ -2,15 +2,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../models/admin_order_model.dart';
 import '../core/constants/api_constants.dart';
 
-class AdminOrderProvider extends ChangeNotifier {
-  List<AdminOrder> _orders = [];
+class AdminUserProvider extends ChangeNotifier {
+  List<dynamic> _users = [];
   bool _isLoading = false;
   final _storage = const FlutterSecureStorage();
 
-  List<AdminOrder> get orders => [..._orders];
+  List<dynamic> get users => [..._users];
   bool get isLoading => _isLoading;
 
   Future<Map<String, String>> _getHeaders() async {
@@ -21,41 +20,40 @@ class AdminOrderProvider extends ChangeNotifier {
     };
   }
 
-  Future<void> fetchOrders() async {
+  Future<void> fetchUsers() async {
     _isLoading = true;
     notifyListeners();
     try {
       final response = await http.get(
-        Uri.parse(ApiConstants.orders),
+        Uri.parse(ApiConstants.users),
         headers: await _getHeaders(),
       );
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final List ordersData = data['data']['orders'];
-        _orders = ordersData.map((o) => AdminOrder.fromJson(o)).toList();
+        _users = data['data']['users'];
       }
     } catch (e) {
-      debugPrint('Error fetching orders: $e');
+      debugPrint('Error fetching users: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<bool> updateOrderStatus(String id, String newStatus) async {
+  Future<bool> toggleBlockUser(String id, bool isBlocked) async {
     try {
-      final response = await http.put(
-        Uri.parse('${ApiConstants.orders}/$id/status'),
+      final endpoint = isBlocked ? 'unblock' : 'block';
+      final response = await http.patch(
+        Uri.parse('${ApiConstants.users}/$id/$endpoint'),
         headers: await _getHeaders(),
-        body: json.encode({'status': newStatus.toLowerCase()}),
       );
       if (response.statusCode == 200) {
-        await fetchOrders();
+        await fetchUsers();
         return true;
       }
       return false;
     } catch (e) {
-      debugPrint('Error updating order status: $e');
+      debugPrint('Error toggling block: $e');
       return false;
     }
   }

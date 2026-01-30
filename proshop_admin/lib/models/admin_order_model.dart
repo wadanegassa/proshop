@@ -24,4 +24,28 @@ class AdminOrder {
     required this.status,
     required this.paymentType,
   });
+
+  factory AdminOrder.fromJson(Map<String, dynamic> json) {
+    final user = json['user'] is Map ? json['user'] : null;
+    final shipping = json['shippingAddress'] ?? {};
+
+    return AdminOrder(
+      id: json['_id'] ?? '',
+      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : DateTime.now(),
+      customerName: user != null ? (user['name'] ?? 'Unknown') : 'Unknown',
+      customerEmail: user != null ? (user['email'] ?? '') : '',
+      customerPhone: '', // Not in backend schema currently
+      address: '${shipping['address'] ?? ''}, ${shipping['city'] ?? ''}, ${shipping['country'] ?? ''}',
+      items: (json['orderItems'] as List? ?? []).map((item) => AdminProduct.fromJson(item)).toList(),
+      totalPrice: (json['totalPrice'] ?? 0.0).toDouble(),
+      status: json['status'] ?? 'pending',
+      paymentType: json['paymentMethod'] ?? 'Unknown',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'status': status,
+    };
+  }
 }

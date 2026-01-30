@@ -2,15 +2,15 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../models/admin_product_model.dart';
+import '../models/category_model.dart';
 import '../core/constants/api_constants.dart';
 
-class AdminProductProvider extends ChangeNotifier {
-  List<AdminProduct> _products = [];
+class CategoryProvider with ChangeNotifier {
+  List<CategoryModel> _categories = [];
   bool _isLoading = false;
   final _storage = const FlutterSecureStorage();
 
-  List<AdminProduct> get products => [..._products];
+  List<CategoryModel> get categories => [..._categories];
   bool get isLoading => _isLoading;
 
   Future<Map<String, String>> _getHeaders() async {
@@ -21,74 +21,74 @@ class AdminProductProvider extends ChangeNotifier {
     };
   }
 
-  Future<void> fetchProducts() async {
+  Future<void> fetchCategories() async {
     _isLoading = true;
     notifyListeners();
     try {
-      final response = await http.get(Uri.parse(ApiConstants.products));
+      final response = await http.get(Uri.parse(ApiConstants.categories));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final List productsData = data['data']['products'];
-        _products = productsData.map((p) => AdminProduct.fromJson(p)).toList();
+        final List categoriesData = data['data']['categories'];
+        _categories = categoriesData.map((c) => CategoryModel.fromJson(c)).toList();
       }
     } catch (e) {
-      debugPrint('Error fetching products: $e');
+      debugPrint('Error fetching categories: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<bool> addProduct(AdminProduct product) async {
+  Future<bool> addCategory(String name, String? icon) async {
     try {
       final response = await http.post(
-        Uri.parse(ApiConstants.products),
+        Uri.parse(ApiConstants.categories),
         headers: await _getHeaders(),
-        body: json.encode(product.toJson()),
+        body: json.encode({'name': name, 'icon': icon}),
       );
       if (response.statusCode == 201) {
-        await fetchProducts();
+        await fetchCategories();
         return true;
       }
       return false;
     } catch (e) {
-      debugPrint('Error adding product: $e');
+      debugPrint('Error adding category: $e');
       return false;
     }
   }
 
-  Future<bool> updateProduct(AdminProduct product) async {
+  Future<bool> updateCategory(CategoryModel category) async {
     try {
       final response = await http.patch(
-        Uri.parse('${ApiConstants.products}/${product.id}'),
+        Uri.parse('${ApiConstants.categories}/${category.id}'),
         headers: await _getHeaders(),
-        body: json.encode(product.toJson()),
+        body: json.encode(category.toJson()),
       );
       if (response.statusCode == 200) {
-        await fetchProducts();
+        await fetchCategories();
         return true;
       }
       return false;
     } catch (e) {
-      debugPrint('Error updating product: $e');
+      debugPrint('Error updating category: $e');
       return false;
     }
   }
 
-  Future<bool> deleteProduct(String id) async {
+  Future<bool> deleteCategory(String id) async {
     try {
       final response = await http.delete(
-        Uri.parse('${ApiConstants.products}/$id'),
+        Uri.parse('${ApiConstants.categories}/$id'),
         headers: await _getHeaders(),
       );
       if (response.statusCode == 204) {
-        _products.removeWhere((p) => p.id == id);
+        _categories.removeWhere((c) => c.id == id);
         notifyListeners();
         return true;
       }
       return false;
     } catch (e) {
-      debugPrint('Error deleting product: $e');
+      debugPrint('Error deleting category: $e');
       return false;
     }
   }

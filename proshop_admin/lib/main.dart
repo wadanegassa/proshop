@@ -6,6 +6,9 @@ import 'providers/auth_provider.dart';
 import 'providers/admin_product_provider.dart';
 import 'providers/admin_order_provider.dart';
 import 'providers/navigation_provider.dart';
+import 'providers/analytics_provider.dart';
+import 'providers/category_provider.dart';
+import 'providers/admin_user_provider.dart';
 import 'features/dashboard/screens/main_shell.dart';
 
 void main() {
@@ -16,6 +19,9 @@ void main() {
         ChangeNotifierProvider(create: (_) => AdminProductProvider()),
         ChangeNotifierProvider(create: (_) => AdminOrderProvider()),
         ChangeNotifierProvider(create: (_) => NavigationProvider()),
+        ChangeNotifierProvider(create: (_) => AnalyticsProvider()),
+        ChangeNotifierProvider(create: (_) => CategoryProvider()),
+        ChangeNotifierProvider(create: (_) => AdminUserProvider()),
       ],
       child: const AdminApp(),
     ),

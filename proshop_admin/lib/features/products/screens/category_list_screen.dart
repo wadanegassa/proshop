@@ -1,8 +1,59 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/constants/admin_colors.dart';
+import '../../../providers/category_provider.dart';
+import '../../../models/category_model.dart';
 
-class CategoryListScreen extends StatelessWidget {
+class CategoryListScreen extends StatefulWidget {
   const CategoryListScreen({super.key});
+
+  @override
+  State<CategoryListScreen> createState() => _CategoryListScreenState();
+}
+
+class _CategoryListScreenState extends State<CategoryListScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() => context.read<CategoryProvider>().fetchCategories());
+  }
+
+  void _showAddCategoryDialog() {
+    final nameController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AdminColors.surface,
+        title: const Text('Add Category', style: TextStyle(color: Colors.white)),
+        content: TextField(
+          controller: nameController,
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(
+            hintText: 'Category Name',
+            hintStyle: TextStyle(color: AdminColors.textMuted),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (nameController.text.isNotEmpty) {
+                final success = await context.read<CategoryProvider>().addCategory(
+                  nameController.text,
+                  null, // Icon optional for now
+                );
+                if (success && mounted) Navigator.pop(context);
+              }
+            },
+            child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +66,7 @@ class CategoryListScreen extends StatelessWidget {
             const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                 Text(
+                Text(
                   'Categories',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white),
                 ),
@@ -27,7 +78,7 @@ class CategoryListScreen extends StatelessWidget {
               ],
             ),
             ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: _showAddCategoryDialog,
               icon: const Icon(Icons.add_rounded, size: 18),
               label: const Text('Add Category'),
               style: ElevatedButton.styleFrom(
@@ -47,94 +98,65 @@ class CategoryListScreen extends StatelessWidget {
             color: AdminColors.surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AdminColors.divider),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
           ),
-          child: Column(
-            children: [
-               Padding(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: AdminColors.background.withValues(alpha: 0.5),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AdminColors.divider),
-                        ),
-                        child: const TextField(
-                          style: TextStyle(fontSize: 13, color: Colors.white),
-                          decoration: InputDecoration(
-                            hintText: 'Search categories...',
-                            hintStyle: TextStyle(color: AdminColors.textMuted),
-                            prefixIcon: Icon(Icons.search_rounded, size: 16, color: AdminColors.textMuted),
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(vertical: 10),
-                          ),
-                        ),
+          child: Consumer<CategoryProvider>(
+            builder: (context, provider, child) {
+              if (provider.isLoading) {
+                return const Padding(
+                  padding: EdgeInsets.all(40.0),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              return Column(
+                children: [
+                  Theme(
+                    data: Theme.of(context).copyWith(dividerColor: AdminColors.divider),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: DataTable(
+                        headingRowHeight: 50,
+                        dataRowMaxHeight: 65,
+                        columns: const [
+                          DataColumn(label: Text('CATEGORY NAME', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11))),
+                          DataColumn(label: Text('STATUS', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11))),
+                          DataColumn(label: Text('ACTION', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11))),
+                        ],
+                        rows: provider.categories.map((cat) => _buildRow(cat)).toList(),
                       ),
                     ),
-                  ],
-                ),
-              ),
-              Theme(
-                data: Theme.of(context).copyWith(dividerColor: AdminColors.divider),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: DataTable(
-                    headingRowHeight: 50,
-                    dataRowMaxHeight: 65,
-                    headingRowColor: WidgetStateProperty.all(AdminColors.background.withValues(alpha: 0.3)),
-                    columns: const [
-                      DataColumn(label: Text('CATEGORY NAME', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11, letterSpacing: 0.5))),
-                      DataColumn(label: Text('PRODUCTS', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11, letterSpacing: 0.5))),
-                      DataColumn(label: Text('STATUS', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11, letterSpacing: 0.5))),
-                      DataColumn(label: Text('ACTION', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11, letterSpacing: 0.5))),
-                    ],
-                    rows: [
-                      _buildRow('Fashion', '1,834', 'Active'),
-                      _buildRow('Electronics', '1,200', 'Active'),
-                      _buildRow('Home Decor', '850', 'Active'),
-                      _buildRow('Watches', '420', 'Inactive'),
-                      _buildRow('Footwear', '960', 'Active'),
-                    ],
                   ),
-                ),
-              ),
-               // Footer
-              const Padding(
-                padding: EdgeInsets.all(20),
-                child: Center(child: Text('Showing 5 categories', style: TextStyle(fontSize: 12, color: AdminColors.textMuted))),
-              ),
-            ],
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Center(
+                      child: Text(
+                        'Showing ${provider.categories.length} categories',
+                        style: const TextStyle(fontSize: 12, color: AdminColors.textMuted),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ],
     );
   }
 
-  DataRow _buildRow(String name, String count, String status) {
-    final isActive = status == 'Active';
+  DataRow _buildRow(CategoryModel category) {
     return DataRow(cells: [
-      DataCell(Text(name, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white))),
-      DataCell(Text(count, style: const TextStyle(color: AdminColors.textSecondary))),
+      DataCell(Text(category.name, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white))),
       DataCell(Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: isActive ? AdminColors.success.withValues(alpha: 0.1) : AdminColors.error.withValues(alpha: 0.1),
+          color: category.isActive ? AdminColors.success.withAlpha(25) : AdminColors.error.withAlpha(25),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
-          status,
+          category.isActive ? 'Active' : 'Inactive',
           style: TextStyle(
-            color: isActive ? AdminColors.success : AdminColors.error,
+            color: category.isActive ? AdminColors.success : AdminColors.error,
             fontSize: 11,
             fontWeight: FontWeight.w800,
           ),
@@ -142,9 +164,9 @@ class CategoryListScreen extends StatelessWidget {
       )),
       DataCell(Row(
         children: [
-          _buildActionIconButton(Icons.edit_outlined, AdminColors.primary, onPressed: () {}),
-          const SizedBox(width: 8),
-          _buildActionIconButton(Icons.delete_outline_rounded, AdminColors.error, onPressed: () {}),
+          _buildActionIconButton(Icons.delete_outline_rounded, AdminColors.error, onPressed: () {
+            context.read<CategoryProvider>().deleteCategory(category.id);
+          }),
         ],
       )),
     ]);
@@ -160,7 +182,7 @@ class CategoryListScreen extends StatelessWidget {
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
+            color: color.withAlpha(25),
             borderRadius: BorderRadius.circular(6),
           ),
           child: Icon(icon, color: color, size: 16),
