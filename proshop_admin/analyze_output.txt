@@ -1,0 +1,9 @@
+Analyzing proshop_admin...                                      
+
+warning • Unused import: '../../features/dashboard/widgets/admin_layout.dart' • lib/core/widgets/general_management_screen.dart:2:8 • unused_import
+  error • The named parameter 'items' is required, but there's no corresponding argument • lib/features/products/screens/product_edit_screen.dart:300:9 • missing_required_argument
+  error • The named parameter 'onChanged' is required, but there's no corresponding argument • lib/features/products/screens/product_edit_screen.dart:300:9 • missing_required_argument
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/features/products/screens/product_edit_screen.dart:314:11 • deprecated_member_use
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/features/products/widgets/add_product_dialog.dart:154:11 • deprecated_member_use
+
+5 issues found. (ran in 1.2s)

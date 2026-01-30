@@ -1,0 +1,8 @@
+Analyzing proshop_admin...                                      
+
+  error • Expected an identifier • lib/features/dashboard/screens/dashboard_screen.dart:130:26 • missing_identifier
+  error • Invalid constant value • lib/features/dashboard/screens/dashboard_screen.dart:130:26 • invalid_constant
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/features/products/screens/product_edit_screen.dart:301:11 • deprecated_member_use
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/features/products/widgets/add_product_dialog.dart:154:11 • deprecated_member_use
+
+4 issues found. (ran in 2.2s)
