@@ -4,6 +4,7 @@ class ProductModel {
   final String description;
   final double price;
   final String image;
+  final List<String> images;
   final String category;
   final double rating;
   final int numReviews;
@@ -15,6 +16,7 @@ class ProductModel {
     required this.description,
     required this.price,
     required this.image,
+    required this.images,
     required this.category,
     required this.rating,
     required this.numReviews,
@@ -22,16 +24,28 @@ class ProductModel {
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
+    // Handle category being either an ID or a populated object
+    String categoryName = '';
+    if (json['category'] is Map) {
+      categoryName = json['category']['name'] ?? '';
+    } else {
+      categoryName = json['category'] ?? '';
+    }
+
+    final imagesList = List<String>.from(json['images'] ?? []);
+    final primaryImage = imagesList.isNotEmpty ? imagesList[0] : '';
+
     return ProductModel(
       id: json['_id'] ?? '',
       name: json['name'] ?? '',
       description: json['description'] ?? '',
       price: (json['price'] ?? 0.0).toDouble(),
-      image: json['image'] ?? '',
-      category: json['category'] ?? '',
+      image: primaryImage,
+      images: imagesList,
+      category: categoryName,
       rating: (json['rating'] ?? 0.0).toDouble(),
-      numReviews: json['numReviews'] ?? 0,
-      countInStock: json['countInStock'] ?? 0,
+      numReviews: json['reviewCount'] ?? 0,
+      countInStock: json['stock'] ?? 0,
     );
   }
 
@@ -41,11 +55,11 @@ class ProductModel {
       'name': name,
       'description': description,
       'price': price,
-      'image': image,
+      'images': images,
       'category': category,
       'rating': rating,
-      'numReviews': numReviews,
-      'countInStock': countInStock,
+      'reviewCount': numReviews,
+      'stock': countInStock,
     };
   }
 }

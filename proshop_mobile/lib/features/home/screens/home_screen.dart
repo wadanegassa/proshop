@@ -7,160 +7,159 @@ import '../../../routes/app_routes.dart';
 import '../widgets/product_card.dart';
 import '../widgets/product_stacked_banner.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final productProvider = Provider.of<ProductProvider>(context);
-    final products = productProvider.products;
-
-    return Scaffold(
-      body: DesignBackground(
-        child: SafeArea(
-          child: CustomScrollView(
-            slivers: [
-              // Search Bar Header
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => Navigator.pushNamed(context, AppRoutes.search),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            decoration: BoxDecoration(
-                              color: AppColors.surface.withOpacity(0.8),
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            child: const Row(
-                              children: [
-                                Icon(Icons.search, color: AppColors.textMuted),
-                                SizedBox(width: 12),
-                                Text(
-                                  'Search Products...',
-                                  style: TextStyle(color: AppColors.textMuted),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: const Icon(Icons.tune, color: Colors.white),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // Stacked Banner
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: ProductStackedBanner(products: products),
-                ),
-              ),
-
-              // Categories Section
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
-                  child: CategoriesSection(),
-                ),
-              ),
-
-              // Products Grid
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 20,
-                    crossAxisSpacing: 20,
-                    childAspectRatio: 0.75,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      return ProductCard(product: products[index]);
-                    },
-                    childCount: products.length,
-                  ),
-                ),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: 100)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class CategoriesSection extends StatelessWidget {
-  const CategoriesSection({super.key});
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() => context.read<ProductProvider>().fetchProducts());
+  }
 
   @override
   Widget build(BuildContext context) {
-    final categories = ['All', 'Road Bike', 'Mountain Bike', 'Helmet'];
-    final productProvider = Provider.of<ProductProvider>(context);
+    return Consumer<ProductProvider>(
+      builder: (context, productProvider, child) {
+        final products = productProvider.products;
 
-    return SizedBox(
-      height: 70,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: categories.length,
-        itemBuilder: (context, index) {
-          final category = categories[index];
-          final isSelected = productProvider.selectedCategory == category;
-          
-          return GestureDetector(
-            onTap: () => productProvider.setCategory(category),
-            child: Container(
-              width: 70,
-              margin: const EdgeInsets.only(right: 20),
-              decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary : AppColors.surface,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: AppColors.primary.withOpacity(0.4),
-                          blurRadius: 15,
-                          offset: const Offset(0, 8),
-                        )
-                      ]
-                    : [],
-              ),
-              child: Center(
-                child: category == 'All' 
-                  ? const Text('All', style: TextStyle(fontWeight: FontWeight.bold))
-                  : Icon(
-                      _getCategoryIcon(category),
-                      color: isSelected ? Colors.white : AppColors.textSecondary,
+        return Scaffold(
+          body: DesignBackground(
+            child: SafeArea(
+              child: CustomScrollView(
+                slivers: [
+                  // Search Bar Header
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => Navigator.pushNamed(context, AppRoutes.search),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: AppColors.surface.withAlpha(200),
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                child: const Row(
+                                  children: [
+                                    Icon(Icons.search, color: AppColors.textMuted),
+                                    SizedBox(width: 12),
+                                    Text(
+                                      'Search Products...',
+                                      style: TextStyle(color: AppColors.textMuted),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: const Icon(Icons.tune, color: Colors.white),
+                          ),
+                        ],
+                      ),
                     ),
+                  ),
+
+                  // Banner
+                   SliverToBoxAdapter(
+                     child: Padding(
+                       padding: const EdgeInsets.symmetric(vertical: 20),
+                       child: ProductStackedBanner(products: products),
+                     ),
+                   ),
+
+                   // Categories
+                   SliverToBoxAdapter(
+                     child: SizedBox(
+                       height: 100,
+                       child: ListView.builder(
+                         padding: const EdgeInsets.symmetric(horizontal: 24),
+                         scrollDirection: Axis.horizontal,
+                         itemCount: productProvider.categories.length,
+                         itemBuilder: (context, index) {
+                           final category = productProvider.categories[index];
+                           final isSelected = productProvider.selectedCategory == category;
+                           return GestureDetector(
+                             onTap: () => productProvider.setCategory(category),
+                             child: Container(
+                               margin: const EdgeInsets.only(right: 16, bottom: 40),
+                               padding: const EdgeInsets.symmetric(horizontal: 24),
+                               decoration: BoxDecoration(
+                                 color: isSelected ? AppColors.primary : AppColors.surface,
+                                 borderRadius: BorderRadius.circular(15),
+                                 boxShadow: isSelected
+                                     ? [
+                                         BoxShadow(
+                                           color: AppColors.primary.withOpacity(0.3),
+                                           blurRadius: 10,
+                                           offset: const Offset(0, 5),
+                                         )
+                                       ]
+                                     : [],
+                               ),
+                               alignment: Alignment.center,
+                               child: Text(
+                                 category,
+                                 style: TextStyle(
+                                   color: isSelected ? Colors.white : AppColors.textMuted,
+                                   fontWeight: FontWeight.bold,
+                                 ),
+                               ),
+                             ),
+                           );
+                         },
+                       ),
+                     ),
+                   ),
+
+                  // Products Grid
+                  if (productProvider.isLoading)
+                    const SliverFillRemaining(
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  else if (products.isEmpty)
+                    const SliverFillRemaining(
+                      child: Center(child: Text('No products found', style: TextStyle(color: Colors.white))),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      sliver: SliverGrid(
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 20,
+                          crossAxisSpacing: 20,
+                          childAspectRatio: 0.7,
+                        ),
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            return ProductCard(product: products[index]);
+                          },
+                          childCount: products.length,
+                        ),
+                      ),
+                    ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                ],
               ),
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
-  }
-
-  IconData _getCategoryIcon(String category) {
-    switch (category) {
-      case 'Road Bike': return Icons.directions_bike;
-      case 'Mountain Bike': return Icons.terrain;
-      case 'Helmet': return Icons.health_and_safety;
-      default: return Icons.grid_view;
-    }
   }
 }

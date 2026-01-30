@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../providers/auth_provider.dart';
 import '../../../core/constants/app_colors.dart';
 import 'home_screen.dart';
 import 'explore_screen.dart';
@@ -13,6 +15,12 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() => context.read<AuthProvider>().autoLogin());
+  }
+
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [

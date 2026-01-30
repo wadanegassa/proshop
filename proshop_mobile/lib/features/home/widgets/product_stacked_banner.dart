@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/widgets/product_image.dart';
 import '../../../models/product_model.dart';
 
 class ProductStackedBanner extends StatelessWidget {
@@ -71,12 +72,10 @@ class ProductStackedBanner extends StatelessWidget {
           Center(
             child: Hero(
               tag: 'banner-${product.id}',
-              child: Image.asset(
-                product.image,
+              child: ProductImage(
+                imagePath: product.image,
                 height: 140,
                 fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) =>
-                    const Icon(Icons.directions_bike, size: 100),
               ),
             ),
           ),

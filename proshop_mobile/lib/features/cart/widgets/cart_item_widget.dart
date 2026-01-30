@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/widgets/product_image.dart';
 import '../../../models/cart_item_model.dart';
 import '../../../providers/cart_provider.dart';
 
@@ -37,11 +38,9 @@ class CartItemWidget extends StatelessWidget {
               color: AppColors.cardBg,
               borderRadius: BorderRadius.circular(15),
             ),
-            child: Image.asset(
-              cartItem.product.image,
+            child: ProductImage(
+              imagePath: cartItem.product.image,
               fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) =>
-                  const Icon(Icons.image, color: AppColors.textMuted),
             ),
           ),
           const SizedBox(width: 16),

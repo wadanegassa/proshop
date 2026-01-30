@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/design_background.dart';
+import '../../../core/widgets/product_image.dart';
 import '../../../models/product_model.dart';
 import '../../../providers/cart_provider.dart';
 
@@ -30,11 +31,9 @@ class ProductDetailsScreen extends StatelessWidget {
                       tag: 'product-${product.id}',
                       child: Padding(
                         padding: const EdgeInsets.only(top: 80, bottom: 40),
-                        child: Image.asset(
-                          product.image,
+                        child: ProductImage(
+                          imagePath: product.image,
                           fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Icon(Icons.image, size: 200),
                         ),
                       ),
                     ),

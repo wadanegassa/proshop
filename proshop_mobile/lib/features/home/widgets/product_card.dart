@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/widgets/product_image.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../models/product_model.dart';
 import '../../../routes/app_routes.dart';
@@ -51,12 +52,10 @@ class ProductCard extends StatelessWidget {
                   Center(
                     child: Hero(
                       tag: 'product-${product.id}',
-                      child: Image.asset(
-                        product.image,
+                      child: ProductImage(
+                        imagePath: product.image,
                         height: 80,
                         fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) => 
-                          const Icon(Icons.image, size: 50, color: AppColors.textMuted),
                       ),
                     ),
                   ),

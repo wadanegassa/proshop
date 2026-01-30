@@ -4,6 +4,8 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/design_background.dart';
 import '../../../routes/app_routes.dart';
 import '../../../providers/cart_provider.dart';
+import '../../../providers/order_provider.dart';
+import '../../../models/order_model.dart';
 import '../widgets/cart_item_widget.dart';
 
 class CartScreen extends StatelessWidget {
@@ -164,9 +166,44 @@ class CheckoutSummary extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: subtotal > 0 ? () {
-                  cartProvider.clear();
-                  Navigator.pushNamed(context, AppRoutes.checkoutSuccess);
+                onPressed: subtotal > 0 ? () async {
+                   final cartProvider = context.read<CartProvider>();
+                   final orderProvider = context.read<OrderProvider>();
+                   final items = cartProvider.items.values.toList();
+                   
+                   final newOrder = OrderModel(
+                     id: '', // Backend will generate
+                     orderItems: items.map((i) => OrderItem(
+                       name: i.product.name,
+                       qty: i.quantity,
+                       image: i.product.image,
+                       price: i.product.price,
+                       product: i.product.id,
+                     )).toList(),
+                     shippingAddress: ShippingAddress(
+                       address: '123 Test St',
+                       city: 'Test City',
+                       postalCode: '12345',
+                       country: 'Test Country',
+                     ),
+                     paymentMethod: 'PayPal',
+                     itemsPrice: subtotal,
+                     shippingPrice: 0.0,
+                     taxPrice: 0.0,
+                     totalPrice: subtotal,
+                     isPaid: false,
+                     isDelivered: false,
+                     status: 'pending',
+                     createdAt: DateTime.now(),
+                   );
+
+                   final success = await orderProvider.createOrder(newOrder);
+                   if (success) {
+                     cartProvider.clear();
+                     if (context.mounted) {
+                       Navigator.pushNamed(context, AppRoutes.checkoutSuccess);
+                     }
+                   }
                 } : null,
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 60),

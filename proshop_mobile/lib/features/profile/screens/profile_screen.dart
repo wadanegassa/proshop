@@ -46,6 +46,11 @@ class ProfileScreen extends StatelessWidget {
                   onTap: () {},
                 ),
                 _buildProfileItem(
+                  icon: Icons.shopping_bag_outlined,
+                  title: 'My Orders',
+                  onTap: () => Navigator.pushNamed(context, AppRoutes.orders),
+                ),
+                _buildProfileItem(
                   icon: Icons.payment,
                   title: 'Payment Methods',
                   onTap: () {},
