@@ -15,12 +15,6 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(() => context.read<AuthProvider>().autoLogin());
-  }
-
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
