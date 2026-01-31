@@ -46,21 +46,14 @@ class CartScreen extends StatelessWidget {
                         ),
                       );
                     }
-                    return Column(
-                      children: [
-                        Expanded(
-                          child: ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            itemCount: items.length,
-                            itemBuilder: (context, index) {
-                              return CartItemWidget(cartItem: items[index]);
-                            },
-                          ),
-                        ),
-                        // Free Shipping Banner
-                        if (items.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    return ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      itemCount: items.length + 1,
+                      itemBuilder: (context, index) {
+                        if (index == items.length) {
+                          // Free Shipping Banner as the last item
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
                             child: Column(
                               children: [
                                 const Text(
@@ -97,10 +90,13 @@ class CartScreen extends StatelessWidget {
                                     ),
                                   ],
                                 ),
+                                const SizedBox(height: 20), // Bottom spacer
                               ],
                             ),
-                          ),
-                      ],
+                          );
+                        }
+                        return CartItemWidget(cartItem: items[index]);
+                      },
                     );
                   },
                 ),
