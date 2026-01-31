@@ -20,7 +20,7 @@ class OrderProvider with ChangeNotifier {
     try {
       final token = await _storage.read(key: 'token');
       final response = await http.get(
-        Uri.parse(ApiConstants.orders),
+        Uri.parse(ApiConstants.myOrders),
         headers: {'Authorization': 'Bearer $token'},
       );
 
