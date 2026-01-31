@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/widgets/design_background.dart';
 import '../../../routes/app_routes.dart';
 import '../../../providers/auth_provider.dart';
 
@@ -11,84 +10,74 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-    final user = authProvider.user;
+    final user = authProvider.user!;
 
     return Scaffold(
-      body: DesignBackground(
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
-                // Profile Header
-                CircleAvatar(
-                  radius: 60,
-                  backgroundColor: AppColors.surface,
-                  child: const Icon(Icons.person, size: 60, color: AppColors.primary),
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              const SizedBox(height: 40),
+              // Profile Header
+              CircleAvatar(
+                radius: 60,
+                backgroundColor: AppColors.primary.withOpacity(0.1),
+                child: const Icon(
+                  Icons.person_rounded,
+                  size: 60,
+                  color: AppColors.primary,
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  user?.name ?? 'Guest User',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                user.name,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
                 ),
-                Text(
-                  user?.email ?? 'Not logged in',
-                  style: const TextStyle(color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                user.email,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 16,
                 ),
-                const SizedBox(height: 40),
-                // Profile Options
-                _buildProfileItem(
-                  icon: Icons.person_outline,
-                  title: 'Account Information',
-                  onTap: () {},
+              ),
+              const SizedBox(height: 40),
+              // Profile Options
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    _buildProfileItem(
+                      icon: Icons.shopping_bag_outlined,
+                      title: 'My Orders',
+                      onTap: () => Navigator.pushNamed(context, AppRoutes.orders),
+                    ),
+                    _buildProfileItem(
+                      icon: Icons.person_outline,
+                      title: 'Account Settings',
+                      onTap: () {},
+                    ),
+                    _buildProfileItem(
+                      icon: Icons.notifications_none,
+                      title: 'Notifications',
+                      onTap: () {},
+                    ),
+                    _buildProfileItem(
+                      icon: Icons.help_outline,
+                      title: 'Help Center',
+                      onTap: () {},
+                    ),
+                    const SizedBox(height: 20),
+                    _buildLogoutButton(context),
+                  ],
                 ),
-                _buildProfileItem(
-                  icon: Icons.shopping_bag_outlined,
-                  title: 'My Orders',
-                  onTap: () => Navigator.pushNamed(context, AppRoutes.orders),
-                ),
-                _buildProfileItem(
-                  icon: Icons.payment,
-                  title: 'Payment Methods',
-                  onTap: () {},
-                ),
-                _buildProfileItem(
-                  icon: Icons.notifications_none,
-                  title: 'Notifications',
-                  onTap: () {},
-                ),
-                _buildProfileItem(
-                  icon: Icons.dark_mode_outlined,
-                  title: 'Dark Mode',
-                  trailing: Switch(
-                    value: true,
-                    onChanged: (val) {},
-                    activeColor: AppColors.primary,
-                  ),
-                  onTap: () {},
-                ),
-                _buildProfileItem(
-                  icon: Icons.help_outline,
-                  title: 'Help Center',
-                  onTap: () {},
-                ),
-                const SizedBox(height: 32),
-                ElevatedButton(
-                  onPressed: () {
-                    authProvider.logout();
-                    Navigator.pushReplacementNamed(context, AppRoutes.login);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.error.withValues(alpha: 0.1),
-                    foregroundColor: AppColors.error,
-                  ),
-                  child: const Text('Logout'),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -98,7 +87,6 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildProfileItem({
     required IconData icon,
     required String title,
-    Widget? trailing,
     required VoidCallback onTap,
   }) {
     return Container(
@@ -108,17 +96,44 @@ class ProfileScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: ListTile(
-        onTap: onTap,
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, color: AppColors.primary),
+        leading: Icon(icon, color: AppColors.primary),
+        title: Text(
+          title,
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
         ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
-        trailing: trailing ?? const Icon(Icons.chevron_right, color: AppColors.textMuted),
+        trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+        onTap: onTap,
+      ),
+    );
+  }
+
+  Widget _buildLogoutButton(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: TextButton(
+        onPressed: () {
+          context.read<AuthProvider>().logout();
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            AppRoutes.initial,
+            (route) => false,
+          );
+        },
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: AppColors.primary, width: 2),
+          ),
+        ),
+        child: const Text(
+          'Logout',
+          style: TextStyle(
+            color: AppColors.primary,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
   }
