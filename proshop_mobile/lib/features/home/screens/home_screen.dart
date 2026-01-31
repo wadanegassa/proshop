@@ -5,7 +5,7 @@ import '../../../core/widgets/design_background.dart';
 import '../../../providers/product_provider.dart';
 import '../../../routes/app_routes.dart';
 import '../widgets/product_card.dart';
-import '../widgets/product_stacked_banner.dart';
+import '../widgets/home_banner_carousel.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -78,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
                    SliverToBoxAdapter(
                      child: Padding(
                        padding: const EdgeInsets.symmetric(vertical: 20),
-                       child: ProductStackedBanner(products: products),
+                       child: HomeBannerCarousel(products: products),
                      ),
                    ),
 
