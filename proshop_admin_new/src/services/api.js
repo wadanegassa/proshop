@@ -44,17 +44,23 @@ export const ordersAPI = {
     getAll: () => api.get('/orders'),
     getOne: (id) => api.get(`/orders/${id}`),
     updateStatus: (id, status) => api.patch(`/orders/${id}/status`, { status }),
+    delete: (id) => api.delete(`/orders/${id}`),
 };
 
 export const notificationsAPI = {
     getAll: () => api.get('/notifications'),
-    markRead: (id) => api.patch(`/ notifications / ${id} / read`),
+    markRead: (id) => api.patch(`/notifications/${id}/read`),
     markAllRead: () => api.patch('/notifications/read-all'),
     clearAll: () => api.delete('/notifications/clear'),
 };
 
 export const analyticsAPI = {
-    getStats: () => api.get('/analytics'),
+    getStats: (range = '1M') => api.get('/analytics', { params: { range } }),
+};
+
+export const settingsAPI = {
+    getSettings: () => api.get('/settings'),
+    updateSettings: (data) => api.put('/settings', data),
 };
 
 export const uploadAPI = {
