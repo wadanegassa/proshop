@@ -13,54 +13,56 @@ class CheckoutSuccessScreen extends StatelessWidget {
           gradient: AppColors.bgGradient,
         ),
         child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    shape: BoxShape.circle,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.check_circle,
+                      color: AppColors.primary,
+                      size: 100,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.check_circle,
-                    color: AppColors.primary,
-                    size: 100,
+                  const SizedBox(height: 32),
+                  Text(
+                    'Order Placed!',
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
-                ),
-                const SizedBox(height: 32),
-                Text(
-                  'Order Placed!',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Your order has been placed successfully. We will notify you once it is dispatched.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textSecondary),
-                ),
-                const SizedBox(height: 48),
-                ElevatedButton(
-                  onPressed: () => Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    AppRoutes.initial,
-                    (route) => false,
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Your order has been placed successfully. We will notify you once it is dispatched.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: AppColors.textSecondary),
                   ),
-                  child: const Text('Back to Home'),
-                ),
-                const SizedBox(height: 16),
-                TextButton(
-                  onPressed: () => Navigator.pushReplacementNamed(
-                    context,
-                    AppRoutes.orders,
+                  const SizedBox(height: 48),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      AppRoutes.initial,
+                      (route) => false,
+                    ),
+                    child: const Text('Back to Home'),
                   ),
-                  child: const Text('View Orders'),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: () => Navigator.pushReplacementNamed(
+                      context,
+                      AppRoutes.orders,
+                    ),
+                    child: const Text('View Orders'),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

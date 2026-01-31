@@ -105,12 +105,14 @@ class ShippingAddress {
   final String city;
   final String postalCode;
   final String country;
+  final String phone;
 
   ShippingAddress({
     required this.address,
     required this.city,
     required this.postalCode,
     required this.country,
+    required this.phone,
   });
 
   factory ShippingAddress.fromJson(Map<String, dynamic> json) {
@@ -119,6 +121,7 @@ class ShippingAddress {
       city: json['city'] ?? '',
       postalCode: json['postalCode'] ?? '',
       country: json['country'] ?? '',
+      phone: json['phone'] ?? '',
     );
   }
 
@@ -128,6 +131,7 @@ class ShippingAddress {
       'city': city,
       'postalCode': postalCode,
       'country': country,
+      'phone': phone,
     };
   }
 }

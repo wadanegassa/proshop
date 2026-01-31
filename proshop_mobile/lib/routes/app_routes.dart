@@ -8,7 +8,10 @@ import '../features/order/screens/order_history_screen.dart';
 import '../features/profile/screens/profile_screen.dart';
 import '../features/home/screens/search_screen.dart';
 import '../features/cart/screens/checkout_success_screen.dart';
-
+import '../features/cart/screens/checkout_screen.dart';
+import '../features/profile/screens/settings_screen.dart';
+import '../features/profile/screens/wishlist_screen.dart';
+import '../features/notifications/screens/notification_screen.dart';
 import '../core/widgets/auth_wrapper.dart';
 
 class AppRoutes {
@@ -18,10 +21,14 @@ class AppRoutes {
   static const String home = '/home';
   static const String productDetails = '/product-details';
   static const String cart = '/cart';
+  static const String checkout = '/checkout';
   static const String orders = '/orders';
   static const String profile = '/profile';
   static const String search = '/search';
   static const String checkoutSuccess = '/checkout-success';
+  static const String settings = '/settings';
+  static const String notifications = '/notifications';
+  static const String wishlist = '/wishlist';
 
   static Map<String, WidgetBuilder> get routes => {
     initial: (context) => const AuthWrapper(),
@@ -30,10 +37,14 @@ class AppRoutes {
     home: (context) => const HomeScreen(),
     productDetails: (context) => const ProductDetailsScreen(),
     cart: (context) => const CartScreen(),
+    checkout: (context) => const CheckoutScreen(),
     orders: (context) => const OrderHistoryScreen(),
     profile: (context) => const ProfileScreen(),
     search: (context) => const SearchScreen(),
     checkoutSuccess: (context) => const CheckoutSuccessScreen(),
+    settings: (context) => const SettingsScreen(),
+    notifications: (context) => const NotificationScreen(),
+    wishlist: (context) => const WishlistScreen(),
   };
 }
 

@@ -12,14 +12,25 @@ class CartProvider with ChangeNotifier {
 
   Map<String, CartItemModel> get items => {..._items};
 
+  List<CartItemModel> get selectedItems => _items.values.where((item) => item.isSelected).toList();
+
   int get itemCount => _items.length;
 
   double get totalAmount {
     double total = 0.0;
     _items.forEach((key, cartItem) {
-      total += cartItem.product.price * cartItem.quantity;
+      if (cartItem.isSelected) {
+        total += cartItem.product.price * cartItem.quantity;
+      }
     });
     return total;
+  }
+
+  void toggleSelection(String productId) {
+    if (_items.containsKey(productId)) {
+      _items[productId]!.isSelected = !_items[productId]!.isSelected;
+      notifyListeners();
+    }
   }
 
   Future<void> fetchCart() async {

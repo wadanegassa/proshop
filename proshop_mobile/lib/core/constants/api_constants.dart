@@ -21,6 +21,10 @@ class ApiConstants {
   // Cart
   static const String cart = '$baseUrl/cart';
   
+  // Notifications
+  static const String notifications = '$baseUrl/notifications';
+
   // Analytics (Shared or admin specific)
   static const String analytics = '$baseUrl/analytics';
+  static const String paypalConfig = '$baseUrl/orders/config/paypal';
 }

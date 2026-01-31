@@ -37,7 +37,7 @@ class OrderProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> createOrder(OrderModel order) async {
+  Future<String?> createOrder(OrderModel order) async {
     try {
       final token = await _storage.read(key: 'token');
       final response = await http.post(
@@ -50,12 +50,81 @@ class OrderProvider with ChangeNotifier {
       );
 
       if (response.statusCode == 201) {
+        final responseData = json.decode(response.body);
+        final createdOrder = responseData['data'];
+        final id = createdOrder['_id'] ?? createdOrder['id'];
+        debugPrint('Order Created Successfully. ID: $id');
+        await fetchOrders();
+        return id;
+      }
+      debugPrint('Order Creation Failed. Status: ${response.statusCode}');
+      return null;
+    } catch (e) {
+      debugPrint('Error creating order: $e');
+      return null;
+    }
+  }
+
+  Future<String?> payOrder(String orderId, Map<String, dynamic> paymentResult) async {
+    try {
+      final token = await _storage.read(key: 'token');
+      final response = await http.patch(
+        Uri.parse('${ApiConstants.orders}/$orderId/pay'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode(paymentResult),
+      );
+
+      debugPrint('Pay Order Response: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        await fetchOrders();
+        return null; // Null means success
+      }
+      
+      final responseData = json.decode(response.body);
+      return responseData['message'] ?? 'Payment verification failed';
+    } catch (e) {
+      debugPrint('Error paying order: $e');
+      return e.toString();
+    }
+  }
+
+  Future<String?> getPaypalClientId() async {
+    try {
+      final token = await _storage.read(key: 'token');
+      final response = await http.get(
+        Uri.parse(ApiConstants.paypalConfig),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        return responseData['data'];
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching PayPal config: $e');
+      return null;
+    }
+  }
+
+  Future<bool> deleteOrder(String orderId) async {
+    try {
+      final token = await _storage.read(key: 'token');
+      final response = await http.delete(
+        Uri.parse('${ApiConstants.orders}/$orderId'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
         await fetchOrders();
         return true;
       }
       return false;
     } catch (e) {
-      debugPrint('Error creating order: $e');
+      debugPrint('Error deleting order: $e');
       return false;
     }
   }

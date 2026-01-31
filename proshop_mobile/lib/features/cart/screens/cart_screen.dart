@@ -8,8 +8,24 @@ import '../../../providers/order_provider.dart';
 import '../../../models/order_model.dart';
 import '../widgets/cart_item_widget.dart';
 
-class CartScreen extends StatelessWidget {
+import '../../../providers/settings_provider.dart';
+
+class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
+
+  @override
+  State<CartScreen> createState() => _CartScreenState();
+}
+
+class _CartScreenState extends State<CartScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Refresh settings when entering the screen to ensure latest admin changes are reflected
+    Future.microtask(() => 
+      Provider.of<SettingsProvider>(context, listen: false).fetchSettings()
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,49 +67,7 @@ class CartScreen extends StatelessWidget {
                       itemCount: items.length + 1,
                       itemBuilder: (context, index) {
                         if (index == items.length) {
-                          // Free Shipping Banner as the last item
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: Column(
-                              children: [
-                                const Text(
-                                  'Your cart qualifies for free shipping',
-                                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-                                ),
-                                const SizedBox(height: 12),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.surface,
-                                          borderRadius: BorderRadius.circular(10),
-                                        ),
-                                        child: const TextField(
-                                          decoration: InputDecoration(
-                                            border: InputBorder.none,
-                                            hintText: 'Bike30',
-                                            hintStyle: TextStyle(color: AppColors.textMuted),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    ElevatedButton(
-                                      onPressed: () {},
-                                      style: ElevatedButton.styleFrom(
-                                        minimumSize: const Size(80, 45),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                      ),
-                                      child: const Text('Apply'),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 20), // Bottom spacer
-                              ],
-                            ),
-                          );
+                          return const SizedBox(height: 40); // Bottom spacer
                         }
                         return CartItemWidget(cartItem: items[index]);
                       },
@@ -115,12 +89,18 @@ class CheckoutSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<CartProvider>(
-      builder: (context, cartProvider, child) {
+    return Consumer2<CartProvider, SettingsProvider>(
+      builder: (context, cartProvider, settingsProvider, child) {
         final subtotal = cartProvider.totalAmount;
-        final deliveryFee = subtotal > 0 ? 0.0 : 0.0; // Mock delivery logic
-        final discount = subtotal > 0 ? subtotal * 0.3 : 0.0; // Mock 30% discount
-        final total = subtotal - discount + deliveryFee;
+        
+        final shippingFee = settingsProvider.shippingFee;
+        final discount = subtotal * (settingsProvider.globalDiscount / 100);
+        // Tax is usually calculated on (subtotal - discount) or just subtotal depending on region.
+        // We'll calculate tax on subtotal to mimic CheckoutScreen logic for now.
+        final tax = subtotal * settingsProvider.taxRate;
+        
+        // Final Total
+        final total = subtotal + shippingFee + tax - discount;
 
         return Container(
           padding: const EdgeInsets.all(24),
@@ -136,10 +116,16 @@ class CheckoutSummary extends StatelessWidget {
             children: [
               _buildSummaryRow('Subtotal:', '\$${subtotal.toStringAsFixed(2)}'),
               const SizedBox(height: 12),
-              _buildSummaryRow('Delivery Fee:', '\$${deliveryFee.toStringAsFixed(2)}'),
+              _buildSummaryRow('Shipping:', '\$${shippingFee.toStringAsFixed(2)}'),
               const SizedBox(height: 12),
-              _buildSummaryRow('Discount:', '30%', isDiscount: true),
-              const SizedBox(height: 20),
+              if (settingsProvider.taxRate > 0) ...[
+                 _buildSummaryRow('Tax (${(settingsProvider.taxRate*100).toStringAsFixed(0)}%):', '\$${tax.toStringAsFixed(2)}'),
+                 const SizedBox(height: 12),
+              ],
+              if (settingsProvider.globalDiscount > 0) ...[
+                _buildSummaryRow('Discount (${settingsProvider.globalDiscount.toStringAsFixed(0)}%):', '-\$${discount.toStringAsFixed(2)}', isDiscount: true),
+                const SizedBox(height: 20),
+              ],
               const Divider(color: AppColors.textMuted, thickness: 0.5),
               const SizedBox(height: 20),
               Row(
@@ -162,44 +148,8 @@ class CheckoutSummary extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: subtotal > 0 ? () async {
-                   final cartProvider = context.read<CartProvider>();
-                   final orderProvider = context.read<OrderProvider>();
-                   final items = cartProvider.items.values.toList();
-                   
-                   final newOrder = OrderModel(
-                     id: '', // Backend will generate
-                     orderItems: items.map((i) => OrderItem(
-                       name: i.product.name,
-                       qty: i.quantity,
-                       image: i.product.image,
-                       price: i.product.price,
-                       product: i.product.id,
-                     )).toList(),
-                     shippingAddress: ShippingAddress(
-                       address: '123 Test St',
-                       city: 'Test City',
-                       postalCode: '12345',
-                       country: 'Test Country',
-                     ),
-                     paymentMethod: 'PayPal',
-                     itemsPrice: subtotal,
-                     shippingPrice: 0.0,
-                     taxPrice: 0.0,
-                     totalPrice: subtotal,
-                     isPaid: false,
-                     isDelivered: false,
-                     status: 'pending',
-                     createdAt: DateTime.now(),
-                   );
-
-                   final success = await orderProvider.createOrder(newOrder);
-                   if (success) {
-                     cartProvider.clear();
-                     if (context.mounted) {
-                       Navigator.pushNamed(context, AppRoutes.checkoutSuccess);
-                     }
-                   }
+                onPressed: subtotal > 0 ? () {
+                  Navigator.pushNamed(context, AppRoutes.checkout);
                 } : null,
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 60),

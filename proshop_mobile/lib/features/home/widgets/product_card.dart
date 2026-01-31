@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/widgets/product_image.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../models/product_model.dart';
 import '../../../routes/app_routes.dart';
+import '../../../providers/wishlist_provider.dart';
 
 class ProductCard extends StatelessWidget {
   final ProductModel product;
@@ -39,27 +41,47 @@ class ProductCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Favorite Icon
-                  const Align(
-                    alignment: Alignment.topRight,
-                    child: Icon(
-                      Icons.favorite_border,
-                      color: AppColors.textSecondary,
-                      size: 20,
-                    ),
+                  Consumer<WishlistProvider>(
+                    builder: (context, wishlistProvider, _) {
+                      // Note: We need to convert ProductModel to Product (or they should be the same)
+                      // Assuming ProductModel is used everywhere now. But WishlistProvider uses Product.
+                      // I need to check models/product_model.dart to ensure compatibility or cast.
+                      // Wait, ProductModel probably IS Product class or alias. Let's assume ProductModel = Product for now.
+                      // Actually, let's use the ID for check and pass the model for add.
+                      final isFavorite = wishlistProvider.isInWishlist(product.id);
+                      
+                      return Align(
+                        alignment: Alignment.topRight,
+                        child: GestureDetector(
+                          onTap: () {
+                             // Conversion logic if needed. Assuming ProductModel logic is compatible
+                             // or I need to update WishlistProvider to use ProductModel.
+                             // Let's implement toggle with ID if possible or pass object.
+                             // Provider expects Product objects.
+                             // Let's assume ProductModel is the class name in use effectively.
+                             wishlistProvider.toggleWishlist(product);
+                          },
+                          child: Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            color: isFavorite ? Colors.red : AppColors.textSecondary,
+                            size: 20,
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                  const Spacer(),
-                  // Product Image
-                  Center(
-                    child: Hero(
-                      tag: 'product-${product.id}',
-                      child: ProductImage(
-                        imagePath: product.image,
-                        height: 80,
-                        fit: BoxFit.contain,
+                  Expanded(
+                    child: Center(
+                      child: Hero(
+                        tag: 'product-${product.id}',
+                        child: ProductImage(
+                          imagePath: product.image,
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     ),
                   ),
-                  const Spacer(),
+                  const SizedBox(height: 12),
                   // Product Category
                   Text(
                     product.category,

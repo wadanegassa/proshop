@@ -29,6 +29,19 @@ class CartItemWidget extends StatelessWidget {
       ),
       child: Row(
         children: [
+          // Selection Checkbox
+          Theme(
+            data: Theme.of(context).copyWith(
+              unselectedWidgetColor: AppColors.textMuted,
+            ),
+            child: Checkbox(
+              value: cartItem.isSelected,
+              activeColor: AppColors.primary,
+              checkColor: Colors.white,
+              onChanged: (_) => cartProvider.toggleSelection(cartItem.product.id),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+            ),
+          ),
           // Product Image
           Container(
             height: 70,

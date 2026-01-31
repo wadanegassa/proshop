@@ -94,30 +94,32 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       children: [
                         Row(
                           children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                product.brand.toUpperCase(),
-                                style: const TextStyle(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
+                        if (product.brand.isNotEmpty && product.brand != 'Unknown Brand' && product.brand != 'N/A')
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              product.brand.toUpperCase(),
+                              style: const TextStyle(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
                               ),
                             ),
-                            const SizedBox(width: 10),
+                          ),
+                        if (product.brand.isNotEmpty && product.brand != 'Unknown Brand' && product.brand != 'N/A')
+                          const SizedBox(width: 10),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
                                 color: product.countInStock > 0
-                                    ? Colors.green.withValues(alpha: 0.1)
-                                    : Colors.red.withValues(alpha: 0.1),
+                                    ? Colors.green.withOpacity(0.1)
+                                    : Colors.red.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -151,7 +153,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                   horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
                                 color: AppColors.surface,
-                                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                                border: Border.all(color: AppColors.primary.withOpacity(0.3)),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Row(
@@ -441,7 +443,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   }
 
   Widget _buildSpecRow(String label, String value) {
-    if (value.isEmpty || value == '0.0%') return const SizedBox.shrink();
+    if (value.isEmpty || value == '0.0%' || value == 'N/A' || value == 'Unknown Brand') return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(

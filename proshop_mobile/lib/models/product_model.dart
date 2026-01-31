@@ -37,7 +37,7 @@ class ProductModel {
     this.weight = '',
     this.discount = 0.0,
     this.tax = 0.0,
-    this.gender = 'Unisex',
+    this.gender = 'N/A',
     this.sizes = const [],
     this.colors = const [],
   });
@@ -71,7 +71,7 @@ class ProductModel {
       weight: json['weight'] ?? '',
       discount: (json['discount'] ?? 0.0).toDouble(),
       tax: (json['tax'] ?? 0.0).toDouble(),
-      gender: json['gender'] ?? 'Unisex',
+      gender: json['gender'] ?? 'N/A',
       sizes: List<String>.from(json['sizes'] ?? []),
       colors: List<String>.from(json['colors'] ?? []),
     );
