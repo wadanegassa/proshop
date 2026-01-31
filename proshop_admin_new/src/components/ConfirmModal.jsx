@@ -1,27 +1,45 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, X } from 'lucide-react';
+import { AlertTriangle, X, Trash2 } from 'lucide-react';
 
 const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, confirmText = 'Delete', type = 'danger' }) => {
     if (!isOpen) return null;
 
     return (
         <AnimatePresence>
-            <div className="modal-overlay">
+            <motion.div
+                className="modal-overlay"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={onClose}
+            >
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    initial={{ opacity: 0, scale: 0.8, y: 50 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                    exit={{ opacity: 0, scale: 0.8, y: 50 }}
+                    transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
                     className="modal-card glass-card"
+                    onClick={(e) => e.stopPropagation()}
                 >
                     <button className="modal-close" onClick={onClose}>
                         <X size={20} />
                     </button>
 
                     <div className="modal-icon-container">
-                        <div className={`modal-icon ${type}`}>
-                            <AlertCircle size={32} />
-                        </div>
+                        <motion.div
+                            className={`modal-icon ${type}`}
+                            animate={{
+                                scale: [1, 1.1, 1],
+                            }}
+                            transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                            }}
+                        >
+                            {type === 'danger' ? <Trash2 size={36} /> : <AlertTriangle size={36} />}
+                        </motion.div>
                     </div>
 
                     <div className="modal-content">
@@ -30,13 +48,26 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, confirmText 
                     </div>
 
                     <div className="modal-actions">
-                        <button className="modal-btn cancel" onClick={onClose}>Cancel</button>
-                        <button className={`modal-btn confirm ${type}`} onClick={() => {
-                            onConfirm();
-                            onClose();
-                        }}>
+                        <motion.button
+                            className="modal-btn cancel"
+                            onClick={onClose}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                        >
+                            Cancel
+                        </motion.button>
+                        <motion.button
+                            className={`modal-btn confirm ${type}`}
+                            onClick={() => {
+                                onConfirm();
+                                onClose();
+                            }}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                        >
+                            <Trash2 size={18} />
                             {confirmText}
-                        </button>
+                        </motion.button>
                     </div>
                 </motion.div>
 
@@ -47,104 +78,164 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, confirmText 
                         left: 0;
                         width: 100vw;
                         height: 100vh;
-                        background: rgba(0, 0, 0, 0.4);
-                        backdrop-filter: blur(8px);
+                        background: rgba(0, 0, 0, 0.75);
+                        backdrop-filter: blur(10px);
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        z-index: 9999;
+                        z-index: 10000;
                         padding: 20px;
                     }
+                    
                     .modal-card {
                         width: 100%;
-                        max-width: 400px;
-                        background: var(--surface);
-                        border: 1px solid var(--divider);
-                        border-radius: 20px;
-                        padding: 32px;
+                        max-width: 440px;
+                        background: linear-gradient(135deg, rgba(30, 30, 40, 0.98), rgba(20, 20, 30, 0.98));
+                        border: 1px solid rgba(239, 68, 68, 0.3);
+                        border-radius: 24px;
+                        padding: 40px;
                         position: relative;
                         text-align: center;
-                        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+                        box-shadow: 
+                            0 25px 50px rgba(0, 0, 0, 0.5),
+                            0 0 60px rgba(239, 68, 68, 0.15),
+                            inset 0 1px 0 rgba(255, 255, 255, 0.05);
                     }
+                    
                     .modal-close {
                         position: absolute;
-                        top: 16px;
-                        right: 16px;
-                        background: transparent;
-                        border: none;
-                        color: var(--text-muted);
+                        top: 20px;
+                        right: 20px;
+                        background: rgba(255, 255, 255, 0.05);
+                        border: 1px solid rgba(255, 255, 255, 0.1);
+                        border-radius: 10px;
+                        width: 36px;
+                        height: 36px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: #999;
                         cursor: pointer;
-                        transition: var(--transition);
+                        transition: all 0.2s;
                     }
+                    
                     .modal-close:hover {
-                        color: var(--text-primary);
+                        background: rgba(255, 255, 255, 0.1);
+                        color: white;
                         transform: rotate(90deg);
                     }
+                    
                     .modal-icon-container {
                         display: flex;
                         justify-content: center;
-                        margin-bottom: 24px;
+                        margin-bottom: 28px;
                     }
+                    
                     .modal-icon {
-                        width: 64px;
-                        height: 64px;
-                        border-radius: 16px;
+                        width: 88px;
+                        height: 88px;
+                        border-radius: 50%;
                         display: flex;
                         align-items: center;
                         justify-content: center;
+                        position: relative;
                     }
+                    
+                    .modal-icon::before {
+                        content: '';
+                        position: absolute;
+                        inset: -4px;
+                        border-radius: 50%;
+                        padding: 4px;
+                        background: linear-gradient(135deg, rgba(239, 68, 68, 0.4), rgba(220, 38, 38, 0.2));
+                        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+                        -webkit-mask-composite: xor;
+                        mask-composite: exclude;
+                        opacity: 0.6;
+                    }
+                    
                     .modal-icon.danger {
-                        background: rgba(239, 68, 68, 0.1);
-                        color: var(--error);
+                        background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.1));
+                        color: #ef4444;
+                        box-shadow: 0 0 30px rgba(239, 68, 68, 0.3);
                     }
+                    
                     .modal-icon.warning {
-                        background: rgba(245, 158, 11, 0.1);
+                        background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.1));
                         color: #f59e0b;
+                        box-shadow: 0 0 30px rgba(245, 158, 11, 0.3);
                     }
+                    
                     .modal-content h3 {
-                        font-size: 20px;
-                        font-weight: 800;
-                        color: var(--text-primary);
+                        font-size: 24px;
+                        font-weight: 700;
+                        color: white;
                         margin-bottom: 12px;
+                        letter-spacing: -0.5px;
                     }
+                    
                     .modal-content p {
-                        font-size: 14px;
-                        color: var(--text-secondary);
+                        font-size: 15px;
+                        color: rgba(255, 255, 255, 0.6);
                         line-height: 1.6;
-                        margin-bottom: 30px;
+                        margin-bottom: 32px;
                     }
+                    
                     .modal-actions {
                         display: grid;
                         grid-template-columns: 1fr 1fr;
                         gap: 12px;
                     }
+                    
                     .modal-btn {
-                        height: 44px;
-                        border-radius: 10px;
-                        font-size: 14px;
-                        font-weight: 700;
+                        height: 48px;
+                        border-radius: 12px;
+                        font-size: 15px;
+                        font-weight: 600;
                         cursor: pointer;
-                        transition: var(--transition);
-                        border: 1px solid transparent;
+                        transition: all 0.2s;
+                        border: none;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 8px;
                     }
+                    
                     .modal-btn.cancel {
-                        background: var(--surface-light);
-                        color: var(--text-primary);
-                        border-color: var(--divider);
+                        background: rgba(255, 255, 255, 0.05);
+                        color: rgba(255, 255, 255, 0.7);
+                        border: 1px solid rgba(255, 255, 255, 0.1);
                     }
+                    
                     .modal-btn.cancel:hover {
-                        background: var(--divider);
-                    }
-                    .modal-btn.confirm.danger {
-                        background: var(--error);
+                        background: rgba(255, 255, 255, 0.1);
                         color: white;
+                        border-color: rgba(255, 255, 255, 0.2);
                     }
+                    
+                    .modal-btn.confirm.danger {
+                        background: linear-gradient(135deg, #ef4444, #dc2626);
+                        color: white;
+                        box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
+                    }
+                    
                     .modal-btn.confirm.danger:hover {
-                        background: #dc2626;
-                        box-shadow: 0 8px 16px rgba(239, 68, 68, 0.4);
+                        box-shadow: 0 6px 24px rgba(239, 68, 68, 0.5);
+                        transform: translateY(-2px);
+                    }
+                    
+                    .modal-btn.confirm.warning {
+                        background: linear-gradient(135deg, #f59e0b, #d97706);
+                        color: white;
+                        box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4);
+                    }
+                    
+                    .modal-btn.confirm.warning:hover {
+                        box-shadow: 0 6px 24px rgba(245, 158, 11, 0.5);
+                        transform: translateY(-2px);
                     }
                 `}</style>
-            </div>
+            </motion.div>
         </AnimatePresence>
     );
 };

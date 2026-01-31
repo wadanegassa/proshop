@@ -1,5 +1,6 @@
 const Order = require('../models/orderModel');
 const Product = require('../models/productModel');
+const User = require('../models/userModel');
 const catchAsync = require('../middleware/asyncHandler');
 
 exports.getAnalyticsData = catchAsync(async (req, res, next) => {
@@ -10,30 +11,41 @@ exports.getAnalyticsData = catchAsync(async (req, res, next) => {
         { $group: { _id: null, totalSales: { $sum: '$totalPrice' }, totalOrders: { $sum: 1 } } }
     ]);
 
-    const totalSales = totalSalesData.length > 0 ? totalSalesData[0].totalSales : 0;
-    const totalOrders = await Order.countDocuments();
+    const totalSales = (totalSalesData.length > 0 && totalSalesData[0].totalSales) ? totalSalesData[0].totalSales : 0;
+    const totalOrders = (await Order.countDocuments()) || 0;
 
-    // Derived stats for Larkon UI
-    const deals = Math.floor(totalOrders * 0.7); // Let's say 70% of orders are 'deals'
-    const newLeads = totalOrders * 3; // Mocking leads based on orders
-    const bookedRevenue = totalSales * 1.2; // Including pending payments
+    // Real Metrics
+    const totalUsers = (await User.countDocuments()) || 1; // Avoid division by zero
+    const newLeads = totalUsers;
 
-    const date = new Date();
-    const last30Days = new Date(date.setDate(date.getDate() - 30));
+    const dealsCount = await Order.countDocuments({ $or: [{ isPaid: true }, { isDelivered: true }] });
+    const deals = dealsCount;
 
-    // Performance Chart Data (Sales over time)
-    const salesOverTime = await Order.aggregate([
-        { $match: { createdAt: { $gte: last30Days }, isPaid: true } },
-        {
-            $group: {
-                _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-                totalSales: { $sum: '$totalPrice' },
-                clicks: { $sum: { $add: [{ $multiply: [{ $rand: {} }, 100] }, 50] } }, // Real-ish mock data
-                pageViews: { $sum: { $add: [{ $multiply: [{ $rand: {} }, 500] }, 200] } }
-            }
-        },
-        { $sort: { _id: 1 } }
+    const allOrdersValue = await Order.aggregate([
+        { $group: { _id: null, total: { $sum: '$totalPrice' } } }
     ]);
+    const bookedRevenue = allOrdersValue.length > 0 ? allOrdersValue[0].total : 0;
+
+    const { range = '1M' } = req.query;
+    let startDate = new Date();
+    let groupFormat = '%Y-%m-%d';
+
+    if (range === '1D') {
+        startDate.setHours(startDate.getHours() - 24);
+        groupFormat = '%H:00';
+    } else if (range === '1M') {
+        startDate.setDate(startDate.getDate() - 30);
+        groupFormat = '%Y-%m-%d';
+    } else if (range === '6M') {
+        startDate.setMonth(startDate.getMonth() - 6);
+        groupFormat = '%Y-%m-%d';
+    } else if (range === '1Y') {
+        startDate.setFullYear(startDate.getFullYear() - 1);
+        groupFormat = '%Y-%m';
+    } else if (range === 'ALL') {
+        startDate = new Date(0);
+        groupFormat = '%Y-%m';
+    }
 
     // Sessions by Country
     const sessionsByCountry = await Order.aggregate([
@@ -41,6 +53,35 @@ exports.getAnalyticsData = catchAsync(async (req, res, next) => {
         { $project: { country: '$_id', sessions: '$count', _id: 0 } },
         { $sort: { sessions: -1 } }
     ]);
+
+    // Performance Chart Data (Sales over time)
+    const salesOverTime = await Order.aggregate([
+        { $match: { createdAt: { $gte: startDate } } },
+        {
+            $group: {
+                _id: { $dateToString: { format: groupFormat, date: '$createdAt' } },
+                totalSales: { $sum: '$totalPrice' },
+                clicks: { $sum: { $add: [{ $multiply: [{ $rand: {} }, 100] }, 50] } },
+                pageViews: { $sum: { $add: [{ $multiply: [{ $rand: {} }, 500] }, 200] } }
+            }
+        },
+        { $sort: { _id: 1 } }
+    ]);
+
+    // Ensure chart has at least some data points for visualization if empty
+    let finalSalesOverTime = salesOverTime;
+    if (salesOverTime.length === 0) {
+        finalSalesOverTime = Array.from({ length: 7 }).map((_, i) => {
+            const d = new Date();
+            d.setDate(d.getDate() - (6 - i));
+            return {
+                _id: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                totalSales: 0,
+                clicks: Math.floor(Math.random() * 50) + 20,
+                pageViews: Math.floor(Math.random() * 200) + 100
+            };
+        });
+    }
 
     // Top Selling Products (Calculated from orders if possible, otherwise mock from product stats)
     const topProductsData = await Order.aggregate([
@@ -79,22 +120,28 @@ exports.getAnalyticsData = catchAsync(async (req, res, next) => {
     const returningCustomersPercent = totalUniqueCustomers > 0 ? ((returningCustomers / totalUniqueCustomers) * 100).toFixed(1) : 0;
     const newCustomersPercent = totalUniqueCustomers > 0 ? (100 - returningCustomersPercent).toFixed(1) : 0;
 
+    // Recent Orders
+    const recentOrders = await Order.find({})
+        .populate('user', 'name email')
+        .sort('-createdAt')
+        .limit(10);
+
     res.status(200).json({
         success: true,
         data: {
-            totalSales,
-            totalOrders,
-            deals,
-            newLeads,
-            bookedRevenue,
-            salesOverTime,
-            conversionRate: totalOrders > 0 ? ((totalOrders / 1500) * 100).toFixed(1) : 0,
-            returningCustomersPercent,
-            newCustomersPercent,
-            totalUniqueCustomers,
-            sessionsByCountry,
-            topProducts: finalTopProducts,
-            recentOrders
+            totalSales: Number(totalSales) || 0,
+            totalOrders: Number(totalOrders) || 0,
+            deals: Number(deals) || 0,
+            newLeads: Number(newLeads) || 0,
+            bookedRevenue: Number(bookedRevenue) || 0,
+            salesOverTime: finalSalesOverTime || [],
+            conversionRate: ((totalOrders / totalUsers) * 100).toFixed(1),
+            returningCustomersPercent: returningCustomersPercent || "0.0",
+            newCustomersPercent: newCustomersPercent || "0.0",
+            totalUniqueCustomers: totalUniqueCustomers || 0,
+            sessionsByCountry: sessionsByCountry || [],
+            topProducts: finalTopProducts || [],
+            recentOrders: recentOrders || []
         }
     });
 });

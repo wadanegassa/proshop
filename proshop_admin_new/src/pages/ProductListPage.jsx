@@ -1,22 +1,56 @@
 import React, { useState, useEffect } from 'react';
 import { productsAPI, getImageUrl } from '../services/api';
-import { Edit, Trash2, Plus, Search, Filter, Eye, ChevronRight, MoreVertical } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Edit, Trash2, Plus, Search, Filter, Eye, ChevronRight, MoreVertical, Download } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import ConfirmModal from '../components/ConfirmModal';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const ProductListPage = () => {
+    const navigate = useNavigate();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
 
-    // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState(null);
+
+    const generatePDF = () => {
+        const doc = new jsPDF();
+        doc.setFontSize(18);
+        doc.setTextColor(255, 107, 0);
+        doc.text('Product Catalog Report', 14, 20);
+
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 28);
+        doc.text(`Total Products: ${filteredProducts.length}`, 14, 33);
+
+        const tableColumn = ["Product Name", "Category", "Price", "Stock", "Rating"];
+        const tableRows = filteredProducts.map(p => [
+            p.name,
+            p.category?.name || 'N/A',
+            `$${p.price}`,
+            p.countInStock > 0 ? `${p.countInStock} Items` : 'Out of Stock',
+            `★ ${p.rating || 0} (${p.numReviews || 0})`
+        ]);
+
+        autoTable(doc, {
+            startY: 40,
+            head: [tableColumn],
+            body: tableRows,
+            theme: 'striped',
+            headStyles: { fillColor: [255, 107, 0], textColor: [255, 255, 255] },
+            styles: { fontSize: 8 }
+        });
+
+        doc.save(`product-catalog-${new Date().getTime()}.pdf`);
+    };
 
     useEffect(() => {
         const fetchProducts = async () => {
             try {
                 const response = await productsAPI.getAll();
-                console.log('ProductListPage: All Products:', response.data.data.products);
                 setProducts(response.data.data.products);
             } catch (error) {
                 console.error(error);
@@ -27,7 +61,8 @@ const ProductListPage = () => {
         fetchProducts();
     }, []);
 
-    const handleDeleteClick = (id) => {
+    const handleDeleteClick = (e, id) => {
+        e.stopPropagation();
         setItemToDelete(id);
         setIsModalOpen(true);
     };
@@ -42,39 +77,47 @@ const ProductListPage = () => {
         }
     };
 
+    const filteredProducts = products.filter(p =>
+        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.category?.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     if (loading) return <div className="loading-state">Loading products...</div>;
 
     return (
-        <div className="product-list-page fade-in">
-            <div className="page-header">
+        <div className="product-list-larkon fade-in">
+            <div className="page-header-larkon">
                 <div className="header-left">
-                    <h1 className="cool-title">PRODUCTS LIST <span className="title-accent">☰</span></h1>
-                    <div className="breadcrumb">
-                        <span>List</span> <ChevronRight size={14} /> <span>All Products</span>
-                    </div>
+                    <h1>Products List</h1>
                 </div>
-                <div className="header-actions">
-                    <button className="btn-icon"><Filter size={18} /></button>
-                    <Link to="/products/create" className="btn-primary btn-cool">
-                        <Plus size={18} strokeWidth={3} /> <span>New Product</span>
+                <div className="header-right">
+                    <button className="larkon-btn btn-primary" onClick={generatePDF}>
+                        <Download size={18} /> Export PDF
+                    </button>
+                    <Link to="/products/create" className="larkon-btn btn-primary">
+                        <Plus size={18} /> Create Product
                     </Link>
                 </div>
             </div>
 
-            <div className="table-container glass-card">
-                <div className="table-header-row">
-                    <h4>All Products ({products.length})</h4>
-                    <div className="search-box">
+            <div className="glass-card table-card-larkon">
+                <div className="card-controls">
+                    <div className="search-box-larkon">
                         <Search size={18} />
-                        <input type="text" placeholder="Search products..." />
+                        <input
+                            type="text"
+                            placeholder="Search products..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
                     </div>
                 </div>
 
-                <div className="table-responsive">
-                    <table className="proshop-table">
+                <div className="table-wrapper">
+                    <table className="larkon-table">
                         <thead>
                             <tr>
-                                <th>Product Image & Name</th>
+                                <th>Product Name & Size</th>
                                 <th>Price</th>
                                 <th>Stock</th>
                                 <th>Category</th>
@@ -83,42 +126,47 @@ const ProductListPage = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {products.map((product) => (
-                                <tr key={product._id}>
+                            {filteredProducts.map((product) => (
+                                <tr key={product._id} onClick={() => navigate(`/products/edit/${product._id}`)}>
                                     <td>
-                                        <div className="p-cell">
-                                            <div className="p-img">
+                                        <div className="product-info-cell">
+                                            <div className="product-thumb">
                                                 <img src={getImageUrl(product.images[0])} alt="" />
                                             </div>
-                                            <div className="p-info">
-                                                <Link to={`/products/details/${product._id}`} className="p-name">{product.name}</Link>
-                                                <span className="p-variant">Size: M / Color: Black</span>
+                                            <div className="product-text">
+                                                <span className="p-title">{product.name}</span>
+                                                <span className="p-subtitle">Size: {product.sizes?.[0] || 'N/A'}</span>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <div className="p-price-cell">
-                                            <span className="p-current">${product.price}</span>
-                                            <span className="p-stock-info">({product.countInStock} Items Left)</span>
+                                        <div className="price-cell">
+                                            <span className="val">${product.price}</span>
                                         </div>
                                     </td>
                                     <td>
-                                        <span className={`status-badge ${product.countInStock > 10 ? 'success' : product.countInStock > 0 ? 'warning' : 'error'}`}>
-                                            {product.countInStock > 0 ? `${product.countInStock} Left` : 'Out of Stock'}
-                                        </span>
-                                    </td>
-                                    <td>{product.category?.name || 'N/A'}</td>
-                                    <td>
-                                        <div className="p-rating">
-                                            <span className="badge-rating"><Eye size={12} /> {product.rating || 4.5}</span>
-                                            <span className="p-reviews">({product.numReviews || 0} Reviews)</span>
+                                        <div className="stock-cell">
+                                            <span className={`status-pill ${product.countInStock > 0 ? 'in-stock' : 'out-of-stock'}`}>
+                                                {product.countInStock > 0 ? `${product.countInStock} Items` : 'Out of Stock'}
+                                            </span>
                                         </div>
                                     </td>
                                     <td>
-                                        <div className="action-btns">
-                                            <Link to={`/products/details/${product._id}`} className="action-btn view"><Eye size={16} /></Link>
-                                            <Link to={`/products/edit/${product._id}`} className="action-btn edit"><Edit size={16} /></Link>
-                                            <button onClick={() => handleDeleteClick(product._id)} className="action-btn delete"><Trash2 size={16} /></button>
+                                        <span className="cat-pill">{product.category?.name || 'N/A'}</span>
+                                    </td>
+                                    <td>
+                                        <div className="rating-cell">
+                                            <div className="rating-badge">
+                                                ★ {product.rating || 4.5}
+                                            </div>
+                                            <span className="review-count">({product.numReviews || 0})</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div className="action-row">
+                                            <button className="action-icn view" onClick={(e) => { e.stopPropagation(); navigate(`/products/details/${product._id}`); }} title="View Details"><Eye size={16} /></button>
+                                            <button className="action-icn edit" onClick={(e) => { e.stopPropagation(); navigate(`/products/edit/${product._id}`); }} title="Edit"><Edit size={16} /></button>
+                                            <button className="action-icn delete" onClick={(e) => handleDeleteClick(e, product._id)} title="Delete"><Trash2 size={16} /></button>
                                         </div>
                                     </td>
                                 </tr>
@@ -127,75 +175,110 @@ const ProductListPage = () => {
                     </table>
                 </div>
 
-                <div className="table-footer">
-                    <div className="footer-info">Showing 1 to {products.length} of {products.length} entries</div>
-                    <div className="pagination">
-                        <button disabled><ChevronRight size={16} style={{ transform: 'rotate(180deg)' }} /></button>
-                        <button className="active">1</button>
-                        <button><ChevronRight size={16} /></button>
+                <div className="card-footer-larkon">
+                    <div className="footer-stats">
+                        Showing {filteredProducts.length} of {products.length} entries
+                    </div>
+                    <div className="larkon-pagination">
+                        <button className="pag-btn" disabled><ChevronRight size={18} style={{ transform: 'rotate(180deg)' }} /></button>
+                        <button className="pag-btn active">1</button>
+                        <button className="pag-btn">2</button>
+                        <button className="pag-btn"><ChevronRight size={18} /></button>
                     </div>
                 </div>
             </div>
 
             <style>{`
-                .product-list-page { padding: 0; }
-                .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-                .page-header h1.cool-title { font-size: 16px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
-                .title-accent { color: var(--primary); filter: drop-shadow(0 0 8px var(--primary-glow)); font-size: 18px; line-height: 1; }
-                .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
-                .header-actions { display: flex; gap: 12px; }
-                .btn-icon { width: 40px; height: 40px; border-radius: 8px; background: var(--surface); color: var(--text-primary); display: flex; align-items: center; justify-content: center; }
-
-                .table-container { padding: 0; overflow: hidden; }
-                .table-header-row { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--divider); }
-                .table-header-row h4 { font-size: 15px; font-weight: 700; color: var(--text-primary); }
-                .search-box { display: flex; align-items: center; gap: 12px; padding: 0 16px; height: 36px; width: 250px; background: var(--surface-light); border-radius: 6px; border: 1px solid var(--divider); }
-                .search-box input { background: transparent; border: none; outline: none; color: var(--text-primary); width: 100%; font-size: 13px; }
-
-                .proshop-table { width: 100%; border-collapse: collapse; }
-                .proshop-table th { text-align: left; padding: 12px 24px; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--divider); }
-                .proshop-table td { padding: 16px 24px; border-bottom: 1px solid var(--divider); vertical-align: middle; }
+                .product-list-larkon { padding: 30px; background: var(--background); min-height: 100vh; color: var(--text-primary); font-family: 'Inter', sans-serif; }
                 
-                .p-cell { display: flex; align-items: center; gap: 16px; }
-                .p-img { width: 48px; height: 48px; border-radius: 8px; background: var(--surface-light); padding: 4px; display: flex; align-items: center; justify-content: center; }
-                .p-img img { max-width: 100%; max-height: 100%; object-fit: contain; }
-                .p-info { display: flex; flex-direction: column; gap: 4px; }
-                .p-name { font-size: 13px; font-weight: 700; color: var(--text-primary); text-decoration: none; }
-                .p-name:hover { color: var(--primary); }
-                .p-variant { font-size: 11px; color: var(--text-muted); }
+                .page-header-larkon { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+                .page-header-larkon h1 { font-size: 20px; font-weight: 700; }
+                .header-right { display: flex; gap: 12px; }
 
-                .p-price-cell { display: flex; flex-direction: column; gap: 2px; }
-                .p-current { font-size: 14px; font-weight: 700; color: var(--text-primary); }
-                .p-stock-info { font-size: 11px; color: var(--text-muted); }
+                .larkon-btn { 
+                    display: flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 8px; 
+                    font-size: 14px; font-weight: 600; cursor: pointer; transition: var(--transition); border: none;
+                }
+                .btn-outline { background: var(--surface); color: var(--text-primary); border: 1px solid var(--divider); }
+                .btn-outline:hover { background: var(--surface-light); border-color: var(--primary); }
+                .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px var(--primary-glow); }
+                .btn-primary:hover { filter: brightness(1.1); transform: translateY(-2px); }
+
+                .table-card-larkon { padding: 0; }
+                .card-controls { padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--divider); }
                 
-                .status-badge { padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; width: fit-content; }
-                .status-badge.success { background: rgba(34, 197, 94, 0.1); color: var(--success); }
-                .status-badge.warning { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
-                .status-badge.error { background: rgba(239, 68, 68, 0.1); color: var(--error); }
+                .search-box-larkon { 
+                    display: flex; align-items: center; gap: 12px; padding: 0 16px; height: 42px; width: 320px; 
+                    background: var(--surface-light); border-radius: 8px; border: 1px solid transparent; transition: var(--transition);
+                }
+                .search-box-larkon:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
+                .search-box-larkon input { background: transparent; border: none; outline: none; color: var(--text-primary); width: 100%; font-size: 14px; }
+                .search-box-larkon input::placeholder { color: var(--text-secondary); }
 
-                .p-rating { display: flex; flex-direction: column; gap: 4px; }
-                .badge-rating { display: flex; align-items: center; gap: 4px; background: var(--surface-light); color: var(--text-primary); padding: 2px 8px; border-radius: 12px; font-size: 11px; width: fit-content; }
-                .p-reviews { font-size: 11px; color: var(--text-muted); }
+                .filter-actions { display: none; }
+                .control-btn { display: none; }
+                .control-btn:hover { border-color: var(--primary); color: var(--primary); }
 
-                .action-btns { display: flex; gap: 8px; }
-                .action-btn { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: var(--surface-light); color: var(--text-secondary); transition: var(--transition); }
-                .action-btn.view:hover { color: var(--primary); background: rgba(255, 107, 0, 0.1); }
-                .action-btn.edit:hover { color: var(--success); background: rgba(34, 197, 94, 0.1); }
-                .action-btn.delete:hover { color: var(--error); background: rgba(239, 68, 68, 0.1); }
+                .table-wrapper { overflow-x: auto; }
+                .larkon-table { width: 100%; border-collapse: collapse; }
+                .larkon-table th { 
+                    text-align: left; padding: 16px 24px; font-size: 13px; font-weight: 600; 
+                    color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--divider); 
+                }
+                .larkon-table td { padding: 16px 24px; border-bottom: 1px solid var(--divider); vertical-align: middle; transition: var(--transition); cursor: pointer; }
+                .larkon-table tbody tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
-                .table-footer { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; }
-                .footer-info { font-size: 13px; color: var(--text-muted); }
-                .pagination { display: flex; gap: 8px; }
-                .pagination button { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: var(--surface-light); color: var(--text-primary); border: 1px solid var(--divider); }
-                .pagination button.active { background: var(--primary); border-color: var(--primary); }
-                .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+                .product-info-cell { display: flex; align-items: center; gap: 15px; }
+                .product-thumb { width: 50px; height: 50px; border-radius: 8px; background: #000; padding: 5px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--divider); }
+                .product-thumb img { max-width: 100%; max-height: 100%; object-fit: contain; }
+                .product-text { display: flex; flex-direction: column; gap: 4px; }
+                .p-title { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+                .p-subtitle { font-size: 12px; color: var(--text-secondary); }
 
-                .btn-cool { position: relative; overflow: hidden; }
-                .btn-cool span { position: relative; z-index: 1; }
-                .btn-cool::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent); transform: rotate(45deg); transition: 0.5s; left: -100%; }
-                .btn-cool:hover::after { left: 100%; }
+                .price-cell .val { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+                
+                .status-pill { 
+                    padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase;
+                    display: inline-block;
+                }
+                .status-pill.in-stock { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+                .status-pill.out-of-stock { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+                .cat-pill { padding: 4px 10px; background: var(--surface-light); border-radius: 6px; font-size: 12px; color: var(--text-secondary); }
+
+                .rating-cell { display: flex; align-items: center; gap: 8px; }
+                .rating-badge { background: #facc15; color: #000; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; }
+                .review-count { font-size: 12px; color: var(--text-secondary); }
+
+                .action-row { display: flex; gap: 8px; }
+                .action-icn { 
+                    width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; 
+                    background: var(--surface-light); border: 1px solid transparent; border-radius: 6px; color: var(--text-secondary); cursor: pointer; transition: 0.2s;
+                }
+                .action-icn:hover { transform: scale(1.1); }
+                .action-icn.view:hover { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: #3b82f6; }
+                .action-icn.edit:hover { background: rgba(34, 197, 94, 0.1); color: #22c55e; border-color: #22c55e; }
+                .action-icn.delete:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: #ef4444; }
+
+                .card-footer-larkon { padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; }
+                .footer-stats { font-size: 13px; color: var(--text-secondary); }
+
+                .larkon-pagination { display: flex; gap: 6px; }
+                .pag-btn { 
+                    width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; 
+                    background: var(--surface-light); border: 1px solid var(--divider); border-radius: 8px; color: var(--text-primary); cursor: pointer; transition: 0.2s;
+                }
+                .pag-btn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+                .pag-btn.active { background: var(--primary); border-color: var(--primary); color: white; }
+                .pag-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
                 .loading-state { height: 60vh; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 18px; }
+                
+                @keyframes popIn {
+                    from { opacity: 0; transform: scale(0.95); }
+                    to { opacity: 1; transform: scale(1); }
+                }
+                .glass-card { animation: popIn 0.4s ease-out; background: var(--surface); border: 1px solid var(--divider); border-radius: var(--radius-md); overflow: hidden; }
             `}</style>
 
             <ConfirmModal
@@ -205,7 +288,7 @@ const ProductListPage = () => {
                 title="Delete Product"
                 message="Are you sure you want to remove this product from your catalog? This action cannot be undone."
             />
-        </div>
+        </div >
     );
 };
 

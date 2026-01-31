@@ -38,21 +38,77 @@ L.Marker.prototype.options.icon = DefaultIcon;
 const DashboardPage = () => {
     const { isDarkMode } = useTheme();
     const [stats, setStats] = useState(null);
+    const [performanceData, setPerformanceData] = useState([]);
+    const [orderLocations, setOrderLocations] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [performanceLoading, setPerformanceLoading] = useState(true);
+    const [performanceRange, setPerformanceRange] = useState('1M');
 
+    // Fetch Initial General Stats
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const response = await analyticsAPI.getStats();
-                setStats(response.data.data);
+                const response = await analyticsAPI.getStats('1M');
+                const data = response.data.data;
+                setStats(data);
+                setPerformanceData(data.salesOverTime || []);
+
+                // Stable locations for map
+                if (data.recentOrders) {
+                    const locations = data.recentOrders.map(order => ({
+                        id: order._id,
+                        name: order.user?.name || 'Customer',
+                        pos: [
+                            9.145 + (Math.random() * 4 - 2),
+                            40.489 + (Math.random() * 4 - 2)
+                        ]
+                    }));
+                    setOrderLocations(locations);
+                }
             } catch (error) {
                 console.error('Dashboard error:', error);
             } finally {
                 setLoading(false);
+                setPerformanceLoading(false);
             }
         };
         fetchStats();
     }, []);
+
+    // Only update performance data when range changes
+    useEffect(() => {
+        const fetchPerformanceData = async () => {
+            if (loading) return;
+            setPerformanceLoading(true);
+            try {
+                const response = await analyticsAPI.getStats(performanceRange);
+                setPerformanceData(response.data.data.salesOverTime || []);
+            } catch (error) {
+                console.error('Performance error:', error);
+            } finally {
+                setPerformanceLoading(false);
+            }
+        };
+        fetchPerformanceData();
+    }, [performanceRange]);
+
+    const formatChartLabel = (value) => {
+        if (!value) return '';
+        if (performanceRange === '1D') return value;
+        try {
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            if (performanceRange === '1M' || performanceRange === '6M') {
+                return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+            }
+            if (performanceRange === '1Y' || performanceRange === 'ALL') {
+                return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+            }
+        } catch (e) {
+            return value;
+        }
+        return value;
+    };
 
     if (loading) return <div className="loading-state">Loading premium dashboard...</div>;
 
@@ -149,26 +205,37 @@ const DashboardPage = () => {
                         <h4>Performance</h4>
                         <div className="header-actions">
                             <div className="chart-tabs">
-                                <span>ALL</span>
-                                <span>1M</span>
-                                <span>6M</span>
-                                <span className="active">1Y</span>
+                                <span className={performanceRange === 'ALL' ? 'active' : ''} onClick={() => setPerformanceRange('ALL')}>ALL</span>
+                                <span className={performanceRange === '1D' ? 'active' : ''} onClick={() => setPerformanceRange('1D')}>1D</span>
+                                <span className={performanceRange === '1M' ? 'active' : ''} onClick={() => setPerformanceRange('1M')}>1M</span>
+                                <span className={performanceRange === '6M' ? 'active' : ''} onClick={() => setPerformanceRange('6M')}>6M</span>
+                                <span className={performanceRange === '1Y' ? 'active' : ''} onClick={() => setPerformanceRange('1Y')}>1Y</span>
                             </div>
                         </div>
                     </div>
-                    <div className="chart-wrapper">
+                    <div className="chart-wrapper" style={{ opacity: performanceLoading ? 0.5 : 1, transition: 'opacity 0.3s' }}>
                         <ResponsiveContainer width="100%" height={320}>
-                            <ComposedChart data={stats?.salesOverTime}>
-                                <XAxis dataKey="_id" axisLine={false} tickLine={false} tick={{ fill: isDarkMode ? '#6c757d' : '#475569', fontSize: 11 }} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fill: isDarkMode ? '#6c757d' : '#475569', fontSize: 11 }} />
-                                <Tooltip contentStyle={{ background: isDarkMode ? '#2b3035' : '#ffffff', border: 'none', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                                <Bar dataKey="pageViews" fill="#ff6b00" radius={[4, 4, 0, 0]} barSize={30} />
+                            <ComposedChart data={performanceData}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'} />
+                                <XAxis
+                                    dataKey="_id"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: isDarkMode ? '#888' : '#666', fontSize: 11 }}
+                                    tickFormatter={formatChartLabel}
+                                />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fill: isDarkMode ? '#888' : '#666', fontSize: 11 }} />
+                                <Tooltip
+                                    labelFormatter={formatChartLabel}
+                                    contentStyle={{ background: isDarkMode ? '#1e2227' : '#ffffff', border: '1px solid var(--divider)', borderRadius: '8px' }}
+                                />
+                                <Bar dataKey="pageViews" fill="var(--primary)" radius={[4, 4, 0, 0]} barSize={performanceRange === '1D' ? 40 : 20} />
                                 <Line type="monotone" dataKey="clicks" stroke="#22c55e" strokeWidth={2} dot={false} />
                             </ComposedChart>
                         </ResponsiveContainer>
                         <div className="chart-legend">
-                            <span className="legend-item"><span className="dot" style={{ background: '#ff6b00' }}></span> Page Views</span>
-                            <span className="legend-item"><span className="dot" style={{ background: '#22c55e' }}></span> Clicks</span>
+                            <span className="legend-item"><span className="dot" style={{ background: 'var(--primary)' }}></span> Sales Content View</span>
+                            <span className="legend-item"><span className="dot" style={{ background: '#22c55e' }}></span> Order Conversion</span>
                         </div>
                     </div>
                 </div>
@@ -188,18 +255,15 @@ const DashboardPage = () => {
                                 url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
                             />
-                            {stats?.recentOrders?.map((order, i) => (
+                            {orderLocations.map((loc) => (
                                 <Marker
-                                    key={order._id || i}
-                                    position={[
-                                        9.145 + (Math.random() * 4 - 2),
-                                        40.489 + (Math.random() * 4 - 2)
-                                    ]}
+                                    key={loc.id}
+                                    position={loc.pos}
                                 >
                                     <Popup>
                                         <div style={{ color: 'black' }}>
-                                            <b>Order #{order._id?.substring(order._id.length - 6)}</b><br />
-                                            {order.user?.name || 'Customer'}<br />
+                                            <b>Order #{loc.id.substring(loc.id.length - 6)}</b><br />
+                                            {loc.name}<br />
                                             Active
                                         </div>
                                     </Popup>
@@ -268,13 +332,13 @@ const DashboardPage = () => {
                                         <td>{new Date(order.createdAt).toLocaleDateString()}</td>
                                         <td>{order.user?.name || 'Customer'}</td>
                                         <td>{order.user?.email || 'N/A'}</td>
-                                        <td>+1-555-123-456{i}</td>
-                                        <td>New York, USA</td>
-                                        <td>Credit Card</td>
+                                        <td>{order.shippingAddress?.phone || 'N/A'}</td>
+                                        <td>{order.shippingAddress?.city || 'N/A'}</td>
+                                        <td>{order.paymentMethod || 'COD'}</td>
                                         <td>
                                             <span className="status-badge">
                                                 <span className="dot" style={{ background: order.isPaid ? '#22c55e' : '#f59e0b' }}></span>
-                                                {order.isPaid ? 'Completed' : 'Pending'}
+                                                {order.isPaid ? 'Paid' : 'Unpaid'}
                                             </span>
                                         </td>
                                     </tr>

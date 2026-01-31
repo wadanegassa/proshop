@@ -30,10 +30,10 @@ const Sidebar = () => {
                 {
                     icon: <ShoppingCart size={18} />, label: 'Orders', path: '/orders', subItems: [
                         { label: 'List', path: '/orders' },
-                        { label: 'Details', path: '/orders/details/active' },
                     ]
                 },
                 { icon: <Layers size={18} />, label: 'Category', path: '/categories' },
+                { icon: <Store size={18} />, label: 'Settings', path: '/settings' },
             ]
         },
         {

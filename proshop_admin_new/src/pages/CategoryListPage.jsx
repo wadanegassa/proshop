@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { categoriesAPI } from '../services/api';
-import { Edit, Trash2, Plus, Search, ChevronRight, MoreVertical } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { Edit, Trash2, Plus, Search, ChevronRight, MoreVertical, Download } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const CategoryListPage = () => {
     const [categories, setCategories] = useState([]);
@@ -11,6 +14,35 @@ const CategoryListPage = () => {
     // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState(null);
+
+    const generatePDF = () => {
+        const doc = new jsPDF();
+        doc.setFontSize(18);
+        doc.setTextColor(255, 107, 0);
+        doc.text('Category Report', 14, 20);
+
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 28);
+        doc.text(`Total Categories: ${categories.length}`, 14, 33);
+
+        const tableColumn = ["Category Name", "Slug"];
+        const tableRows = categories.map(c => [
+            c.name,
+            `/${c.name.toLowerCase()}`
+        ]);
+
+        autoTable(doc, {
+            startY: 40,
+            head: [tableColumn],
+            body: tableRows,
+            theme: 'striped',
+            headStyles: { fillColor: [255, 107, 0], textColor: [255, 255, 255] },
+            styles: { fontSize: 9 }
+        });
+
+        doc.save(`categories-report-${new Date().getTime()}.pdf`);
+    };
 
     useEffect(() => {
         fetchCategories();
@@ -29,13 +61,18 @@ const CategoryListPage = () => {
 
     const handleCreate = async (e) => {
         e.preventDefault();
-        if (!newCatName) return;
+        if (!newCatName) {
+            toast.error('Please enter a category name');
+            return;
+        }
         try {
             await categoriesAPI.create({ name: newCatName });
+            toast.success(`Category "${newCatName}" created successfully!`);
             setNewCatName('');
             fetchCategories();
         } catch (error) {
-            alert('Failed to create category');
+            toast.error('Failed to create category');
+            console.error(error);
         }
     };
 
@@ -48,8 +85,10 @@ const CategoryListPage = () => {
         if (!itemToDelete) return;
         try {
             await categoriesAPI.delete(itemToDelete);
+            toast.success('Category deleted successfully!');
             fetchCategories();
         } catch (error) {
+            toast.error('Failed to delete category');
             console.error('Delete failed:', error);
         }
     };
@@ -66,7 +105,9 @@ const CategoryListPage = () => {
                     </div>
                 </div>
                 <div className="header-actions">
-                    <button className="btn-icon"><Search size={18} /></button>
+                    <button className="larkon-btn btn-primary" onClick={generatePDF}>
+                        <Download size={18} /> Export PDF
+                    </button>
                 </div>
             </div>
 
@@ -150,7 +191,7 @@ const CategoryListPage = () => {
                 .badge-count { background: var(--surface-light); color: var(--text-secondary); padding: 2px 8px; border-radius: 4px; font-size: 11px; }
 
                 .action-btns { display: flex; gap: 8px; }
-                .action-btn { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: var(--surface-light); color: var(--text-secondary); transition: var(--transition); }
+                .action-btn { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: var(--surface); color: var(--text-secondary); transition: var(--transition); }
                 .action-btn.edit:hover { color: var(--success); background: rgba(34, 197, 94, 0.1); }
                 .action-btn.delete:hover { color: var(--error); background: rgba(239, 68, 68, 0.1); }
 

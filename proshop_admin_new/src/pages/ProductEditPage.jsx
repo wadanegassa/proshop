@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import { productsAPI, categoriesAPI, uploadAPI, getImageUrl } from '../services/api';
 import { Upload, X, Plus, ChevronRight, Save, Trash2, ArrowLeft } from 'lucide-react';
 
@@ -91,10 +92,14 @@ const ProductEditPage = () => {
         e.preventDefault();
         setSubmitting(true);
         try {
-            await productsAPI.update(id, { ...formData, images });
-            navigate('/products');
-        } catch (error) { alert('Failed to update product'); }
-        finally { setSubmitting(false); }
+            const submissionData = { ...formData, images }; // Define submissionData
+            await productsAPI.update(id, submissionData);
+            toast.success('Product updated successfully!');
+            setTimeout(() => navigate('/products'), 500);
+        } catch (error) {
+            console.error('Update failed:', error);
+            toast.error('Failed to update product.');
+        } finally { setSubmitting(false); }
     };
 
     if (loading) return <div className="loading-state">Loading product details...</div>;

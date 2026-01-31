@@ -41,3 +41,40 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
         data: null
     });
 });
+
+exports.getWishlist = catchAsync(async (req, res, next) => {
+    const user = await User.findById(req.user.id).populate('wishlist');
+
+    res.status(200).json({
+        success: true,
+        data: user.wishlist
+    });
+});
+
+exports.addToWishlist = catchAsync(async (req, res, next) => {
+    const user = await User.findById(req.user.id);
+    const productId = req.params.id;
+
+    if (!user.wishlist.includes(productId)) {
+        user.wishlist.push(productId);
+        await user.save({ validateBeforeSave: false }); // Skip password validation
+    }
+
+    res.status(200).json({
+        success: true,
+        data: user.wishlist
+    });
+});
+
+exports.removeFromWishlist = catchAsync(async (req, res, next) => {
+    const user = await User.findById(req.user.id);
+    const productId = req.params.id;
+
+    user.wishlist = user.wishlist.filter(id => id.toString() !== productId);
+    await user.save({ validateBeforeSave: false });
+
+    res.status(200).json({
+        success: true,
+        data: user.wishlist
+    });
+});

@@ -1,26 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import { productsAPI, categoriesAPI, uploadAPI, getImageUrl } from '../services/api';
-import { Upload, X, Plus, ChevronRight, Save, ArrowLeft } from 'lucide-react';
+import { Upload, X, Plus, ChevronRight, Save, ArrowLeft, Image, UploadCloud } from 'lucide-react';
 
 const ProductCreatePage = () => {
     const navigate = useNavigate();
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
     const [images, setImages] = useState([]);
     const [formData, setFormData] = useState({
         name: '', category: '', brand: '', price: 0, countInStock: 0,
-        description: '', gender: 'Men', weight: '', sku: '',
-        discount: 0, tax: 0, sizes: [], colors: []
+        description: '', gender: 'N/A', weight: '', sku: '',
+        discount: 0, tax: 0, sizes: [], colors: [],
+        specifications: [], highlights: [], status: 'Draft'
     });
 
-    const AVAILABLE_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
-    const AVAILABLE_COLORS = [
-        { name: 'Red', hex: '#ef4444' }, { name: 'Blue', hex: '#3b82f6' },
-        { name: 'Green', hex: '#22c55e' }, { name: 'Black', hex: '#000000' },
-        { name: 'White', hex: '#ffffff' }, { name: 'Orange', hex: '#ff6b00' },
-    ];
+    const [newSpec, setNewSpec] = useState({ label: '', value: '' });
+    const [newHighlight, setNewHighlight] = useState('');
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -52,6 +51,9 @@ const ProductCreatePage = () => {
 
     const handleImageUpload = async (e) => {
         const files = Array.from(e.target.files);
+        if (files.length === 0) return;
+
+        setIsUploading(true);
         const uploadedImages = [];
         for (const file of files) {
             const data = new FormData();
@@ -62,6 +64,7 @@ const ProductCreatePage = () => {
             } catch (error) { console.error('Upload failed', error); }
         }
         setImages(prev => [...prev, ...uploadedImages]);
+        setIsUploading(false);
     };
 
     const removeImage = (index) => setImages(images.filter((_, i) => i !== index));
@@ -69,225 +72,328 @@ const ProductCreatePage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSubmitting(true);
+
+        // Clean up data for submission
+        const submissionData = {
+            ...formData,
+            price: Number(formData.price) || 0,
+            countInStock: Number(formData.countInStock) || 0,
+            discount: Number(formData.discount) || 0,
+            tax: Number(formData.tax) || 0,
+            images
+        };
+
         try {
-            await productsAPI.create({ ...formData, images });
-            navigate('/products');
-        } catch (error) { alert('Failed to create product'); }
-        finally { setSubmitting(false); }
+            await productsAPI.create(submissionData);
+            toast.success('Product created successfully!');
+            setTimeout(() => navigate('/products'), 500);
+        } catch (error) {
+            console.error('Create failed:', error);
+            toast.error('Failed to create product.');
+        } finally { setSubmitting(false); }
     };
 
     if (loading) return <div className="loading-state">Loading categories...</div>;
 
     return (
-        <div className="product-form-page fade-in">
-            <div className="form-header">
-                <div className="header-info">
-                    <h1 className="cool-title">CREATE PRODUCT <span className="title-plus">+</span></h1>
-                    <div className="breadcrumb">
-                        <Link to="/products">Products</Link> <ChevronRight size={14} /> <span>Create</span>
-                    </div>
-                </div>
-                <div className="header-btns">
-                    <Link to="/products" className="btn-secondary">
-                        <ArrowLeft size={16} /> Go Back
-                    </Link>
+        <div className="admin-page create-product-larkon">
+            <div className="page-header-larkon">
+                <div className="header-left">
+                    <button onClick={() => navigate('/products')} className="back-btn"><ArrowLeft size={18} /></button>
+                    <h1>Create Product</h1>
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="form-layout">
-                <div className="form-sidebar">
-                    <div className="preview-card glass-card">
-                        <div className="preview-image">
+            <form onSubmit={handleSubmit} className="larkon-content">
+                {/* Left Column: Preview */}
+                <div className="larkon-sidebar">
+                    <div className="glass-card preview-hero">
+                        <div className="preview-img-container">
                             {images.length > 0 ? (
                                 <img src={getImageUrl(images[0])} alt="Preview" />
                             ) : (
-                                <div className="placeholder-icon"><Upload size={48} color="var(--divider)" /></div>
+                                <div className="img-placeholder"><Image size={48} /><span>Photo Preview</span></div>
                             )}
                         </div>
-                        <div className="preview-info">
-                            <h3>{formData.name || 'Product Name'}</h3>
-                            <p className="p-price">Price: <span>${formData.price}</span></p>
-                            <div className="p-sizes">
-                                <span>Size:</span>
-                                <div className="size-tags">
-                                    {formData.sizes.map(s => <span key={s}>{s}</span>)}
-                                </div>
+                        <div className="preview-details">
+                            <h3>{formData.name || 'Product Name'} <small>({categories.find(c => c._id === formData.category)?.name || 'Category'})</small></h3>
+                            <div className="preview-price">
+                                {formData.discount > 0 ? (
+                                    <>
+                                        <span className="price-label">Price:</span>
+                                        <span className="old-price">${formData.price}</span>
+                                        <span className="new-price">${formData.price - formData.discount}</span>
+                                        <small className="discount-tag">({Math.round((formData.discount / formData.price) * 100)}% off)</small>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="price-label">Price:</span>
+                                        <span className="current-price">${formData.price || '0.00'}</span>
+                                    </>
+                                )}
                             </div>
-                        </div>
-                    </div>
 
-                    <div className="image-upload-card glass-card">
-                        <label className="upload-box">
-                            <Upload size={32} />
-                            <span>Click to upload images</span>
-                            <input type="file" multiple onChange={handleImageUpload} hidden />
-                        </label>
-                        <div className="uploaded-list">
-                            {images.map((img, i) => (
-                                <div key={i} className="mini-thumb">
-                                    <img src={getImageUrl(img)} alt="" />
-                                    <button type="button" onClick={() => removeImage(i)} className="remove-btn"><X size={12} /></button>
-                                </div>
-                            ))}
+                            <div className="preview-variants">
+                                {formData.sizes.length > 0 && (
+                                    <div className="preview-variant-group">
+                                        <label>Sizes:</label>
+                                        <div className="pill-row">
+                                            {formData.sizes.map(s => <span key={s} className="size-pill-small">{s}</span>)}
+                                        </div>
+                                    </div>
+                                )}
+                                {formData.colors.length > 0 && (
+                                    <div className="preview-variant-group">
+                                        <label>Colors:</label>
+                                        <div className="dot-row">
+                                            {formData.colors.map(c => (
+                                                <span key={c} className="color-dot-small" style={{
+                                                    backgroundColor:
+                                                        c === 'Red' ? '#ef4444' : c === 'Blue' ? '#3b82f6' : c === 'Green' ? '#22c55e' :
+                                                            c === 'Black' ? '#000000' : c === 'White' ? '#ffffff' : c === 'Orange' ? '#ff6b00' :
+                                                                c === 'Silver' ? '#c0c0c0' : c === 'Gold' ? '#ffd700' : c === 'Pink' ? '#ec4899' :
+                                                                    c === 'Purple' ? '#a855f7' : '#555'
+                                                }}></span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="form-main">
-                    <div className="glass-card main-info-card">
-                        <div className="card-header"><h4>Product Information</h4></div>
-                        <div className="form-grid">
-                            <div className="input-field full">
-                                <label>Product Name</label>
-                                <input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="Items Name" required />
+                {/* Right Column: Main Form */}
+                <div className="larkon-main">
+                    {/* Hero Upload Section */}
+                    <div className="glass-card hero-upload-card">
+                        <div className="card-header"><h4>Add Product Photo</h4></div>
+                        <div className={`upload-zone ${isUploading ? 'uploading' : ''}`} onClick={() => document.getElementById('image-upload').click()}>
+                            <input type="file" id="image-upload" multiple onChange={handleImageUpload} style={{ display: 'none' }} />
+                            <div className="upload-content">
+                                <div className="upload-icon-circle"><UploadCloud size={32} /></div>
+                                <h3>Drop your images here, or <span>click to browse</span></h3>
+                                <p>1600 x 1200 (4:3) recommended. PNG, JPG and GIF files are allowed</p>
                             </div>
-                            <div className="input-field">
-                                <label>Category</label>
+                            {isUploading && <div className="upload-overlay"><div className="loader-spinner"></div></div>}
+                        </div>
+                        {images.length > 0 && (
+                            <div className="images-grid-mini">
+                                {images.map((img, i) => (
+                                    <div key={i} className="mini-img-item" title="Click to remove" onClick={() => removeImage(i)}>
+                                        <img src={getImageUrl(img)} alt={`Upload ${i}`} />
+                                        <div className="img-remove-overlay"><X size={14} /></div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Product Information Form */}
+                    <div className="glass-card info-card-larkon">
+                        <div className="card-header"><h4>Product Information</h4></div>
+                        <div className="larkon-grid">
+                            <div className="input-field col-8">
+                                <label>Product Name</label>
+                                <input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="Enter product name" required />
+                            </div>
+                            <div className="input-field col-4">
+                                <label>Product Category</label>
                                 <select name="category" value={formData.category} onChange={handleInputChange} required>
                                     <option value="">Select Category</option>
                                     {categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
                                 </select>
                             </div>
-                            <div className="input-field">
+
+                            <div className="input-field col-4">
                                 <label>Brand</label>
                                 <input type="text" name="brand" value={formData.brand} onChange={handleInputChange} placeholder="Brand Name" />
                             </div>
-                            <div className="input-field">
+                            <div className="input-field col-4">
                                 <label>Weight</label>
-                                <input type="text" name="weight" value={formData.weight} onChange={handleInputChange} placeholder="Weight (e.g. 500g)" />
+                                <input type="text" name="weight" value={formData.weight} onChange={handleInputChange} placeholder="800gm" />
                             </div>
-                            <div className="input-field">
+                            <div className="input-field col-4">
                                 <label>Gender</label>
                                 <select name="gender" value={formData.gender} onChange={handleInputChange}>
+                                    <option value="N/A">N/A</option>
                                     <option value="Men">Men</option>
                                     <option value="Women">Women</option>
                                     <option value="Unisex">Unisex</option>
+                                    <option value="Kids">Kids</option>
+                                </select>
+                            </div>
+
+                            <div className="variant-section col-6">
+                                <label>Sizes (Optional)</label>
+                                <div className="size-selector-larkon">
+                                    {['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'].map(s => (
+                                        <button key={s} type="button" onClick={() => toggleSize(s)} className={`size-pill-larkon ${formData.sizes.includes(s) ? 'active' : ''}`}>{s}</button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="variant-section col-6">
+                                <label>Colors (Optional)</label>
+                                <div className="color-selector-larkon">
+                                    {[
+                                        { name: 'Red', hex: '#ef4444' }, { name: 'Blue', hex: '#3b82f6' },
+                                        { name: 'Green', hex: '#22c55e' }, { name: 'Black', hex: '#000000' },
+                                        { name: 'White', hex: '#ffffff' }, { name: 'Orange', hex: '#ff6b00' },
+                                        { name: 'Silver', hex: '#c0c0c0' }, { name: 'Gold', hex: '#ffd700' },
+                                        { name: 'Pink', hex: '#ec4899' }, { name: 'Purple', hex: '#a855f7' }
+                                    ].map(c => (
+                                        <button key={c.name} type="button" onClick={() => toggleColor(c.name)} className={`color-dot-larkon ${formData.colors.includes(c.name) ? 'active' : ''}`} style={{ backgroundColor: c.hex }} title={c.name}></button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="input-field col-12">
+                                <label>Description (Required)</label>
+                                <textarea name="description" value={formData.description} onChange={handleInputChange} placeholder="Type description..." rows="5" required></textarea>
+                            </div>
+
+                            <div className="input-field col-4">
+                                <label>Tag Number</label>
+                                <input type="text" name="sku" value={formData.sku} onChange={handleInputChange} placeholder="SKU-XXXXXX" />
+                            </div>
+                            <div className="input-field col-4">
+                                <label>Stock</label>
+                                <input type="number" name="countInStock" value={formData.countInStock} onChange={handleInputChange} placeholder="0" />
+                            </div>
+                            <div className="input-field col-4">
+                                <label>Status</label>
+                                <select name="status" value={formData.status} onChange={handleInputChange}>
+                                    <option value="Draft">Draft</option>
+                                    <option value="Published">Published</option>
+                                    <option value="Private">Private</option>
                                 </select>
                             </div>
                         </div>
+                    </div>
 
-                        <div className="divider"></div>
-
-                        <div className="card-header"><h4>Pricing & Stock</h4></div>
-                        <div className="form-grid">
-                            <div className="input-field">
-                                <label>Base Price ($)</label>
-                                <input type="number" name="price" value={formData.price} onChange={handleInputChange} required />
+                    {/* Pricing Details Form */}
+                    <div className="glass-card pricing-card-larkon">
+                        <div className="card-header"><h4>Pricing Details</h4></div>
+                        <div className="larkon-grid">
+                            <div className="input-field col-4">
+                                <label>Price</label>
+                                <input type="number" name="price" value={formData.price} onChange={handleInputChange} placeholder="0.00" required />
                             </div>
-                            <div className="input-field">
-                                <label>Discount (%)</label>
-                                <input type="number" name="discount" value={formData.discount} onChange={handleInputChange} />
+                            <div className="input-field col-4">
+                                <label>Discount</label>
+                                <input type="number" name="discount" value={formData.discount} onChange={handleInputChange} placeholder="0.00" />
                             </div>
-                            <div className="input-field">
+                            <div className="input-field col-4">
                                 <label>Tax (%)</label>
-                                <input type="number" name="tax" value={formData.tax} onChange={handleInputChange} />
-                            </div>
-                            <div className="input-field">
-                                <label>Stock Quantity</label>
-                                <input type="number" name="countInStock" value={formData.countInStock} onChange={handleInputChange} required />
-                            </div>
-                        </div>
-
-                        <div className="divider"></div>
-
-                        <div className="card-header"><h4>Description</h4></div>
-                        <div className="input-field full">
-                            <textarea name="description" value={formData.description} onChange={handleInputChange} placeholder="Product description..." rows="5"></textarea>
-                        </div>
-                    </div>
-
-                    <div className="glass-card variants-card">
-                        <div className="card-header"><h4>Variants & Options</h4></div>
-                        <div className="variant-selectors">
-                            <div className="variant-section">
-                                <label>Sizes</label>
-                                <div className="size-selector">
-                                    {AVAILABLE_SIZES.map(s => (
-                                        <button key={s} type="button" onClick={() => toggleSize(s)} className={`size-btn ${formData.sizes.includes(s) ? 'active' : ''}`}>{s}</button>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="variant-section">
-                                <label>Colors</label>
-                                <div className="color-selector">
-                                    {AVAILABLE_COLORS.map(c => (
-                                        <button key={c.name} type="button" onClick={() => toggleColor(c.name)} className={`color-btn-select ${formData.colors.includes(c.name) ? 'active' : ''}`} style={{ backgroundColor: c.hex }} title={c.name}></button>
-                                    ))}
-                                </div>
+                                <input type="number" name="tax" value={formData.tax} onChange={handleInputChange} placeholder="0" />
                             </div>
                         </div>
                     </div>
 
-                    <div className="form-actions">
-                        <button type="button" onClick={() => navigate('/products')} className="btn-secondary-cancel">Cancel</button>
-                        <button type="submit" disabled={submitting} className="btn-primary">
-                            <Save size={18} /> {submitting ? 'Creating...' : 'Create Product'}
+                    <div className="larkon-form-actions">
+                        <button type="button" onClick={() => navigate('/products')} className="larkon-btn btn-outline">Cancel</button>
+                        <button type="submit" disabled={submitting} className="larkon-btn btn-primary">
+                            {submitting ? 'Creating...' : 'Create Product'}
                         </button>
                     </div>
                 </div>
             </form>
 
             <style>{`
-                .product-form-page { padding: 0; }
-                .form-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-                .form-header h1.cool-title { font-size: 18px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
-                .title-plus { color: var(--primary); filter: drop-shadow(0 0 8px var(--primary-glow)); font-size: 24px; line-height: 1; }
-                .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
-                .breadcrumb a { color: inherit; text-decoration: none; }
-                .breadcrumb a:hover { color: var(--primary); }
+                .create-product-larkon { padding: 30px; background: var(--background); min-height: 100vh; color: var(--text-primary); font-family: 'Inter', sans-serif; }
+                
+                .page-header-larkon { margin-bottom: 30px; }
+                .header-left { display: flex; align-items: center; gap: 15px; }
+                .header-left h1 { font-size: 20px; font-weight: 700; }
+                .back-btn { background: var(--surface); border: 1px solid var(--divider); color: var(--text-primary); padding: 8px; border-radius: 8px; cursor: pointer; transition: var(--transition); }
+                .back-btn:hover { background: var(--primary); border-color: var(--primary); box-shadow: 0 4px 12px var(--primary-glow); }
 
-                .header-btns { display: flex; gap: 12px; }
-                .btn-secondary { 
-                    height: 35px; padding: 0 12px; display: flex; align-items: center; justify-content: center; gap: 6px;
-                    background: var(--surface-light); border: 1px solid var(--divider); border-radius: 6px; color: var(--text-primary); 
-                    transition: var(--transition); text-decoration: none; font-size: 12px; font-weight: 600;
+                .larkon-content { display: grid; grid-template-columns: 320px 1fr; gap: 24px; align-items: start; }
+                
+                .glass-card { background: var(--surface); border: 1px solid var(--divider); border-radius: var(--radius-md); padding: 24px; overflow: hidden; }
+                .card-header { margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--divider); }
+                .card-header h4 { font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-primary); }
+
+                .preview-hero { padding: 0; }
+                .preview-img-container { width: 100%; height: 320px; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+                .preview-img-container img { width: 100%; height: 100%; object-fit: cover; }
+                .img-placeholder { color: var(--text-secondary); display: flex; flex-direction: column; align-items: center; gap: 10px; }
+                
+                .preview-details { padding: 20px; }
+                .preview-details h3 { font-size: 18px; margin-bottom: 10px; }
+                .preview-details h3 small { color: var(--primary); font-size: 13px; display: block; margin-top: 4px; }
+                .preview-price { margin-bottom: 20px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+                .price-label { font-size: 13px; color: var(--text-secondary); }
+                .old-price { text-decoration: line-through; color: var(--text-secondary); }
+                .new-price { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+                .discount-tag { background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+
+                .preview-variants { display: flex; flex-direction: column; gap: 15px; }
+                .preview-variant-group label { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+                .size-pill-small { background: var(--surface-light); padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-right: 5px; margin-bottom: 5px; display: inline-block; }
+                .dot-row { display: flex; gap: 6px; flex-wrap: wrap; }
+                .color-dot-small { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); }
+
+                .upload-zone { 
+                    border: 2px dashed var(--divider); border-radius: var(--radius-md); padding: 40px; text-align: center; cursor: pointer;
+                    transition: var(--transition); position: relative;
                 }
-                .btn-secondary:hover { background: var(--surface); border-color: var(--text-muted); color: var(--text-primary); }
+                .upload-zone:hover { border-color: var(--primary); background: rgba(255,107,0,0.05); }
+                .upload-icon-circle { width: 64px; height: 64px; background: rgba(255,107,0,0.1); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+                .upload-content h3 { font-size: 16px; margin-bottom: 8px; color: var(--text-primary); }
+                .upload-content h3 span { color: var(--primary); font-weight: 700; }
+                .upload-content p { font-size: 13px; color: var(--text-secondary); }
 
-                .form-layout { display: grid; grid-template-columns: 350px 1fr; gap: 24px; }
+                .images-grid-mini { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+                .mini-img-item { width: 60px; height: 60px; border-radius: 8px; overflow: hidden; position: relative; border: 1px solid var(--divider); cursor: pointer; }
+                .mini-img-item img { width: 100%; height: 100%; object-fit: cover; }
+                .img-remove-overlay { position: absolute; inset: 0; background: rgba(239, 68, 68, 0.8); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.2s; }
+                .mini-img-item:hover .img-remove-overlay { opacity: 1; }
+
+                .larkon-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px; }
+                .col-12 { grid-column: span 12; }
+                .col-8 { grid-column: span 8; }
+                .col-6 { grid-column: span 6; }
+                .col-4 { grid-column: span 4; }
+
+                .input-field label { display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
+                .input-field input, .input-field select, .input-field textarea { 
+                    width: 100%; background: var(--surface-light); border: 1px solid transparent; border-radius: 8px; 
+                    padding: 12px 16px; color: var(--text-primary); font-size: 14px; transition: var(--transition);
+                }
+                .input-field input:focus, .input-field select:focus, .input-field textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); outline: none; }
+
+                .variant-section label { display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 12px; }
+                .size-selector-larkon, .color-selector-larkon { display: flex; flex-wrap: wrap; gap: 8px; }
                 
-                .form-sidebar { display: flex; flex-direction: column; gap: 24px; }
-                .preview-card { padding: 24px; }
-                .preview-image { aspect-ratio: 1; background: var(--sidebar-bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--divider); margin-bottom: 20px; }
-                .preview-image img { width: 100%; height: 100%; object-fit: contain; }
-                .preview-info h3 { font-size: 16px; margin-bottom: 12px; color: var(--text-primary); }
-                .p-price { font-size: 18px; font-weight: 700; color: var(--primary); }
-                .size-tags { display: flex; gap: 6px; margin-top: 8px; }
-                .size-tags span { background: var(--surface-light); padding: 2px 8px; font-size: 11px; border-radius: 4px; }
+                .size-pill-larkon { 
+                    padding: 8px 14px; border-radius: 6px; background: var(--surface-light); border: 1px solid transparent;
+                    color: var(--text-secondary); font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s;
+                }
+                .size-pill-larkon.active { background: var(--text-primary); color: var(--background); }
+                .size-pill-larkon:hover:not(.active) { border-color: var(--primary); color: var(--text-primary); }
 
-                .image-upload-card { padding: 20px; }
-                .upload-box { border: 2px dashed var(--divider); border-radius: 12px; height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; cursor: pointer; transition: var(--transition); }
-                .upload-box:hover { border-color: var(--primary); background: rgba(255,107,0,0.05); }
-                .uploaded-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 16px; }
-                .mini-thumb { aspect-ratio: 1; position: relative; border-radius: 6px; overflow: hidden; border: 1px solid var(--divider); }
-                .mini-thumb img { width: 100%; height: 100%; object-fit: cover; }
-                .remove-btn { position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--error); color: white; }
+                .color-dot-larkon { 
+                    width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s;
+                }
+                .color-dot-larkon.active { border-color: var(--primary); transform: scale(1.15); box-shadow: 0 0 8px var(--primary-glow); }
 
-                .form-main { display: flex; flex-direction: column; gap: 24px; }
-                .main-info-card, .variants-card { padding: 32px; }
-                .card-header { margin-bottom: 24px; }
-                .card-header h4 { font-size: 15px; font-weight: 700; color: var(--text-primary); }
-                .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 24px; }
-                .input-field { display: flex; flex-direction: column; gap: 8px; }
-                .input-field.full { grid-column: span 2; }
-                .input-field label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
-                .input-field input, .input-field select, .input-field textarea { background: var(--surface-light); border: 1px solid var(--divider); border-radius: 8px; padding: 10px 16px; color: var(--text-primary); font-size: 13px; }
+                .pricing-card-larkon { margin-top: 24px; }
                 
-                .divider { height: 1px; background: var(--divider); margin: 32px 0; }
+                .larkon-form-actions { margin-top: 30px; display: flex; justify-content: flex-end; gap: 12px; }
+                .larkon-btn { padding: 12px 30px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: var(--transition); border: none; }
+                .btn-outline { background: transparent; border: 1px solid var(--divider); color: var(--text-secondary); }
+                .btn-outline:hover { background: var(--surface-light); color: var(--text-primary); }
+                .btn-primary { background: var(--primary); border: 1px solid var(--primary); color: white; }
+                .btn-primary:hover { filter: brightness(1.1); box-shadow: 0 6px 16px var(--primary-glow); transform: translateY(-2px); }
 
-                .variant-selectors { display: flex; flex-direction: column; gap: 24px; }
-                .size-selector { display: flex; gap: 8px; flex-wrap: wrap; }
-                .size-btn { width: 44px; height: 44px; border-radius: 8px; background: var(--surface-light); border: 1px solid var(--divider); color: var(--text-muted); font-weight: 600; }
-                .size-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-                .color-selector { display: flex; gap: 12px; }
-                .color-btn-select { width: 32px; height: 32px; border-radius: 50%; border: 2px solid transparent; box-shadow: 0 0 0 1px var(--divider); }
-                .color-btn-select.active { border-color: white; box-shadow: 0 0 0 2px var(--primary); }
-
-                .form-actions { display: flex; gap: 16px; margin-top: 8px; margin-bottom: 40px; }
-                .btn-primary, .btn-secondary-cancel { height: 44px; padding: 0 32px; font-weight: 700; border-radius: 8px; }
-                .btn-secondary-cancel { background: var(--surface-light); color: var(--text-primary); border: 1px solid var(--divider); }
-                
                 .loading-state { height: 60vh; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 18px; }
+                
+                @keyframes popIn {
+                    from { opacity: 0; transform: scale(0.9); }
+                    to { opacity: 1; transform: scale(1); }
+                }
+                .glass-card { animation: popIn 0.4s ease-out backwards; }
             `}</style>
         </div>
     );

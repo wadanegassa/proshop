@@ -12,8 +12,10 @@ import ProductEditPage from './pages/ProductEditPage';
 import ProductCreatePage from './pages/ProductCreatePage';
 import CategoryListPage from './pages/CategoryListPage';
 import OrderListPage from './pages/OrderListPage';
+import OrderDetailPage from './pages/OrderDetailPage';
 import CustomersPage from './pages/CustomersPage';
 import NotificationsPage from './pages/NotificationsPage';
+import SettingsPage from './pages/SettingsPage';
 import PrivateRoute from './components/PrivateRoute';
 import { Layers } from 'lucide-react';
 
@@ -34,7 +36,7 @@ function App() {
                                 <Route path="products/create" element={<PrivateRoute><ProductCreatePage /></PrivateRoute>} />
                                 <Route path="categories" element={<PrivateRoute><CategoryListPage /></PrivateRoute>} />
                                 <Route path="orders" element={<PrivateRoute><OrderListPage /></PrivateRoute>} />
-                                <Route path="orders/details/:id" element={<PrivateRoute><Placeholder title="Order Details" /></PrivateRoute>} />
+                                <Route path="orders/details/:id" element={<PrivateRoute><OrderDetailPage /></PrivateRoute>} />
                                 <Route path="inventory" element={<PrivateRoute><Placeholder title="Inventory Management" /></PrivateRoute>} />
                                 <Route path="purchases" element={<PrivateRoute><Placeholder title="Purchase History" /></PrivateRoute>} />
                                 <Route path="attributes" element={<PrivateRoute><Placeholder title="Product Attributes" /></PrivateRoute>} />
@@ -54,7 +56,7 @@ function App() {
                                 <Route path="faqs" element={<PrivateRoute><Placeholder title="FAQs" /></PrivateRoute>} />
                                 <Route path="analytics" element={<PrivateRoute><Placeholder title="Deep Analytics" /></PrivateRoute>} />
                                 <Route path="notifications" element={<PrivateRoute><NotificationsPage /></PrivateRoute>} />
-                                <Route path="settings" element={<PrivateRoute><Placeholder title="System Settings" /></PrivateRoute>} />
+                                <Route path="settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
                             </Route>
                         </Routes>
                     </Router>

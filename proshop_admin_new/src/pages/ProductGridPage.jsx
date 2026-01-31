@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { productsAPI, categoriesAPI, getImageUrl } from '../services/api';
-import { Search, Filter, Plus, Star, ChevronRight } from 'lucide-react';
+import { Search, Filter, Plus, Star, ChevronRight, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const ProductGridPage = () => {
     const [products, setProducts] = useState([]);
@@ -15,6 +17,37 @@ const ProductGridPage = () => {
     const [priceBracket, setPriceBracket] = useState('all');
     const [minPrice, setMinPrice] = useState('');
     const [maxPrice, setMaxPrice] = useState('');
+
+    const generatePDF = () => {
+        const doc = new jsPDF();
+        doc.setFontSize(18);
+        doc.setTextColor(255, 107, 0);
+        doc.text('Product Catalog Report (Grid)', 14, 20);
+
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 28);
+        doc.text(`Total Products: ${filteredProducts.length}`, 14, 33);
+
+        const tableColumn = ["Product Name", "Price", "Rating", "Stock"];
+        const tableRows = filteredProducts.map(p => [
+            p.name,
+            `$${p.price}`,
+            `${p.rating || 0} Stars`,
+            p.countInStock > 0 ? `${p.countInStock} In Stock` : 'Out of Stock'
+        ]);
+
+        autoTable(doc, {
+            startY: 40,
+            head: [tableColumn],
+            body: tableRows,
+            theme: 'striped',
+            headStyles: { fillColor: [255, 107, 0], textColor: [255, 255, 255] },
+            styles: { fontSize: 9 }
+        });
+
+        doc.save(`products-grid-${new Date().getTime()}.pdf`);
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -85,7 +118,9 @@ const ProductGridPage = () => {
                     </div>
                 </div>
                 <div className="header-actions">
-                    <button className="btn-icon"><Filter size={18} /></button>
+                    <button className="larkon-btn btn-primary" onClick={generatePDF}>
+                        <Download size={18} /> Export PDF
+                    </button>
                     <Link to="/products/create" className="btn-primary btn-cool">
                         <Plus size={18} strokeWidth={3} /> <span>New Product</span>
                     </Link>
@@ -215,8 +250,7 @@ const ProductGridPage = () => {
                 .grid-header h1.cool-title { font-size: 16px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
                 .title-accent { color: var(--primary); filter: drop-shadow(0 0 8px var(--primary-glow)); font-size: 18px; line-height: 1; }
                 .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
-                .header-actions { display: flex; gap: 12px; }
-                .btn-icon { width: 40px; height: 40px; border-radius: 8px; background: var(--surface); color: var(--text-primary); display: flex; align-items: center; justify-content: center; }
+                .header-actions { display: flex; gap: 12px; align-items: center; }
 
                 .grid-layout { display: grid; grid-template-columns: 280px 1fr; gap: 24px; }
                 

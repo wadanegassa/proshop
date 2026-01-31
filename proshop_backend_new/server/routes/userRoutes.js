@@ -11,6 +11,9 @@ router.post('/login', authController.login);
 router.post('/admin/login', authController.adminLogin);
 
 router.get('/me', authMiddleware.protect, authController.getMe);
+router.get('/wishlist', authMiddleware.protect, userController.getWishlist);
+router.post('/wishlist/:id', authMiddleware.protect, userController.addToWishlist);
+router.delete('/wishlist/:id', authMiddleware.protect, userController.removeFromWishlist);
 
 // Admin Routes
 router.get('/', authMiddleware.protect, authMiddleware.restrictTo('admin'), userController.getAllUsers);

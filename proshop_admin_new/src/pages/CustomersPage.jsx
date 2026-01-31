@@ -1,10 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { usersAPI } from '../services/api';
-import { Trash2, Search, Filter, ChevronRight, User } from 'lucide-react';
+import { Trash2, Search, Filter, ChevronRight, User, Download } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const CustomersPage = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    const generatePDF = () => {
+        const doc = new jsPDF();
+        doc.setFontSize(18);
+        doc.setTextColor(255, 107, 0);
+        doc.text('Customer Base Report', 14, 20);
+
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 28);
+        doc.text(`Total Customers: ${users.length}`, 14, 33);
+
+        const tableColumn = ["Name", "Email", "Role", "Joined At"];
+        const tableRows = users.map(u => [
+            u.name,
+            u.email,
+            u.role.toUpperCase(),
+            new Date(u.createdAt).toLocaleDateString()
+        ]);
+
+        autoTable(doc, {
+            startY: 40,
+            head: [tableColumn],
+            body: tableRows,
+            theme: 'striped',
+            headStyles: { fillColor: [255, 107, 0], textColor: [255, 255, 255] },
+            styles: { fontSize: 9 }
+        });
+
+        doc.save(`customers-report-${new Date().getTime()}.pdf`);
+    };
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -43,7 +76,9 @@ const CustomersPage = () => {
                     </div>
                 </div>
                 <div className="header-actions">
-                    <button className="btn-icon"><Filter size={18} /></button>
+                    <button className="larkon-btn btn-primary" onClick={generatePDF}>
+                        <Download size={18} /> Export PDF
+                    </button>
                 </div>
             </div>
 
@@ -129,7 +164,7 @@ const CustomersPage = () => {
                 .role-badge.admin { background: rgba(255, 107, 0, 0.1); color: var(--primary); }
                 .role-badge.user { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
 
-                .action-btn { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: var(--surface-light); color: var(--text-secondary); transition: var(--transition); }
+                .action-btn { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: var(--surface); color: var(--text-secondary); transition: var(--transition); }
                 .action-btn.delete:hover { color: var(--error); background: rgba(239, 68, 68, 0.1); }
 
                 .table-footer { padding: 20px 24px; font-size: 13px; color: var(--text-muted); }
