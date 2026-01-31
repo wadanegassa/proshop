@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../features/home/screens/main_screen.dart';
 import '../features/home/screens/home_screen.dart';
 import '../features/product/screens/product_details_screen.dart';
 import '../features/auth/screens/login_screen.dart';
@@ -9,6 +8,8 @@ import '../features/order/screens/order_history_screen.dart';
 import '../features/profile/screens/profile_screen.dart';
 import '../features/home/screens/search_screen.dart';
 import '../features/cart/screens/checkout_success_screen.dart';
+
+import '../core/widgets/auth_wrapper.dart';
 
 class AppRoutes {
   static const String initial = '/';
@@ -23,7 +24,7 @@ class AppRoutes {
   static const String checkoutSuccess = '/checkout-success';
 
   static Map<String, WidgetBuilder> get routes => {
-    initial: (context) => const MainScreen(),
+    initial: (context) => const AuthWrapper(),
     login: (context) => const LoginScreen(),
     register: (context) => const RegisterScreen(),
     home: (context) => const HomeScreen(),
