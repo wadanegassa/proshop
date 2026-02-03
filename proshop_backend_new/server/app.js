@@ -13,6 +13,8 @@ const uploadRouter = require('./routes/uploadRoutes');
 const analyticsRouter = require('./routes/analyticsRoutes');
 const notificationRouter = require('./routes/notificationRoutes');
 const settingsRouter = require('./routes/settingsRoutes');
+const cartRouter = require('./routes/cartRoutes');
+const stripeRouter = require('./routes/stripeRoutes');
 
 const app = express();
 
@@ -35,6 +37,8 @@ app.use('/api/v1/upload', uploadRouter);
 app.use('/api/v1/analytics', analyticsRouter);
 app.use('/api/v1/notifications', notificationRouter);
 app.use('/api/v1/settings', settingsRouter);
+app.use('/api/v1/cart', cartRouter);
+app.use('/api/v1/stripe', stripeRouter);
 
 app.get('/', (req, res) => {
     res.send('API is running...');
