@@ -11,7 +11,8 @@ import {
     Globe,
     MoreVertical,
     ChevronRight,
-    Plus
+    Plus,
+    Star
 } from 'lucide-react';
 import { analyticsAPI } from '../services/api';
 import {
@@ -54,15 +55,11 @@ const DashboardPage = () => {
                 setPerformanceData(data.salesOverTime || []);
 
                 // Stable locations for map
+                // Real locations only - for now this might be empty as we don't have lat/lng on orders
+                // Future: Add geocoding or city-based mapping
                 if (data.recentOrders) {
-                    const locations = data.recentOrders.map(order => ({
-                        id: order._id,
-                        name: order.user?.name || 'Customer',
-                        pos: [
-                            9.145 + (Math.random() * 4 - 2),
-                            40.489 + (Math.random() * 4 - 2)
-                        ]
-                    }));
+                    const locations = [];
+                    // We could map cities here if we had a dictionary, but for now strictly NO MOCK random data.
                     setOrderLocations(locations);
                 }
             } catch (error) {
@@ -113,10 +110,10 @@ const DashboardPage = () => {
     if (loading) return <div className="loading-state">Loading premium dashboard...</div>;
 
     const topStats = [
-        { title: 'Total Orders', value: stats?.totalOrders.toLocaleString(), icon: <ShoppingBag size={20} />, trend: '2.3%', isUp: true, sub: 'Last Week', color: '#ff6600' },
-        { title: 'New Leads', value: stats?.newLeads.toLocaleString(), icon: <Target size={20} />, trend: '8.1%', isUp: true, sub: 'Last Month', color: '#ff6600' },
-        { title: 'Deals', value: stats?.deals.toLocaleString(), icon: <Layers size={20} />, trend: '0.3%', isUp: false, sub: 'Last Month', color: '#ff6600' },
-        { title: 'Booked Revenue', value: `$${(stats?.bookedRevenue / 1000).toFixed(1)}k`, icon: <DollarSign size={20} />, trend: '10.6%', isUp: false, sub: 'Last Month', color: '#ff6600' },
+        { title: 'Total Orders', value: stats?.totalOrders.toLocaleString(), icon: <ShoppingBag size={20} />, trend: '-', isUp: true, sub: 'All Time', color: '#ff6600' },
+        { title: 'New Leads', value: stats?.newLeads.toLocaleString(), icon: <Target size={20} />, trend: '-', isUp: true, sub: 'All Time', color: '#ff6600' },
+        { title: 'Deals', value: stats?.deals.toLocaleString(), icon: <Layers size={20} />, trend: '-', isUp: true, sub: 'All Time', color: '#ff6600' },
+        { title: 'Booked Revenue', value: `$${(stats?.bookedRevenue || 0).toLocaleString()}`, icon: <DollarSign size={20} />, trend: '-', isUp: true, sub: 'All Time', color: '#ff6600' },
     ];
 
     const COLORS = ['#ff6b00', '#22c55e', '#3b82f6', '#eab308'];
@@ -157,7 +154,7 @@ const DashboardPage = () => {
 
                     <div className="conversions-box glass-card">
                         <div className="card-header">
-                            <h4>Conversions</h4>
+                            <h4>Customers</h4>
                         </div>
                         <div className="radial-chart-container">
                             <ResponsiveContainer width="100%" height={200}>
@@ -189,7 +186,7 @@ const DashboardPage = () => {
                         <div className="conversion-stats">
                             <div className="c-stat">
                                 <span className="c-label">Total Customers</span>
-                                <span className="c-value">{stats?.totalUniqueCustomers || 0}</span>
+                                <span className="c-value">{stats?.totalUsers || 0}</span>
                             </div>
                             <div className="c-stat">
                                 <span className="c-label">Returning</span>
@@ -228,14 +225,18 @@ const DashboardPage = () => {
                                 <Tooltip
                                     labelFormatter={formatChartLabel}
                                     contentStyle={{ background: isDarkMode ? '#1e2227' : '#ffffff', border: '1px solid var(--divider)', borderRadius: '8px' }}
+                                    formatter={(value, name) => [
+                                        name === 'totalSales' ? `$${value.toLocaleString()}` : value,
+                                        name === 'totalSales' ? 'Revenue' : 'Orders'
+                                    ]}
                                 />
-                                <Bar dataKey="pageViews" fill="var(--primary)" radius={[4, 4, 0, 0]} barSize={performanceRange === '1D' ? 40 : 20} />
-                                <Line type="monotone" dataKey="clicks" stroke="#22c55e" strokeWidth={2} dot={false} />
+                                <Bar dataKey="totalSales" fill="var(--primary)" radius={[4, 4, 0, 0]} barSize={performanceRange === '1D' ? 40 : 20} />
+                                <Line type="monotone" dataKey="orderCount" stroke="#22c55e" strokeWidth={2} dot={false} />
                             </ComposedChart>
                         </ResponsiveContainer>
                         <div className="chart-legend">
-                            <span className="legend-item"><span className="dot" style={{ background: 'var(--primary)' }}></span> Sales Content View</span>
-                            <span className="legend-item"><span className="dot" style={{ background: '#22c55e' }}></span> Order Conversion</span>
+                            <span className="legend-item"><span className="dot" style={{ background: 'var(--primary)' }}></span> Total Revenue</span>
+                            <span className="legend-item"><span className="dot" style={{ background: '#22c55e' }}></span> Order Volume</span>
                         </div>
                     </div>
                 </div>
@@ -281,6 +282,51 @@ const DashboardPage = () => {
                     </div>
                 </div>
 
+                <div className="status-box glass-card">
+                    <div className="card-header">
+                        <h4>Order Status</h4>
+                    </div>
+                    <div className="radial-chart-container">
+                        <ResponsiveContainer width="100%" height={220}>
+                            <PieChart>
+                                <Pie
+                                    data={stats?.ordersByStatus?.length > 0 ? stats.ordersByStatus : [{ name: 'No Data', value: 1 }]}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={60}
+                                    outerRadius={80}
+                                    paddingAngle={5}
+                                    dataKey="value"
+                                >
+                                    {stats?.ordersByStatus?.length > 0 ? (
+                                        stats.ordersByStatus.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        ))
+                                    ) : (
+                                        <Cell fill="rgba(255,255,255,0.05)" />
+                                    )}
+                                </Pie>
+                                <Tooltip
+                                    contentStyle={{ background: isDarkMode ? '#1e2227' : '#ffffff', border: '1px solid var(--divider)', borderRadius: '8px' }}
+                                    itemStyle={{ color: isDarkMode ? '#fff' : '#000' }}
+                                />
+                            </PieChart>
+                        </ResponsiveContainer>
+                        <div className="radial-center">
+                            <span className="radial-value">{stats?.totalOrders || 0}</span>
+                            <span className="radial-label">Total Orders</span>
+                        </div>
+                    </div>
+                    <div className="status-legend">
+                        {stats?.ordersByStatus?.map((entry, index) => (
+                            <div key={index} className="legend-item">
+                                <span className="dot" style={{ background: COLORS[index % COLORS.length] }}></span>
+                                <span className="legend-text">{entry.name} ({entry.value})</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
                 <div className="top-pages-box glass-card">
                     <div className="card-header">
                         <h4>Top Selling Products</h4>
@@ -291,6 +337,7 @@ const DashboardPage = () => {
                                 <tr>
                                     <th>Product Name</th>
                                     <th>Sales</th>
+                                    <th>Rating</th>
                                     <th>Revenue</th>
                                 </tr>
                             </thead>
@@ -299,6 +346,13 @@ const DashboardPage = () => {
                                     <tr key={i}>
                                         <td className="page-path">{p.name}</td>
                                         <td>{p.salesCount}</td>
+                                        <td>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#ffb400' }}>
+                                                <Star size={14} fill="#ffb400" />
+                                                <span style={{ fontWeight: '700', fontSize: '12px' }}>{p.rating || 0}</span>
+                                                <span style={{ color: 'var(--text-muted)', fontSize: '11px', fontWeight: '400' }}>({p.numReviews || 0})</span>
+                                            </div>
+                                        </td>
                                         <td><span className={`badge badge-success`}>${Number(p.revenue).toLocaleString()}</span></td>
                                     </tr>
                                 ))}
@@ -438,6 +492,10 @@ const DashboardPage = () => {
                 .session-item { display: flex; justify-content: space-between; padding: 12px 0; border-top: 1px solid var(--divider); }
                 .country-info { font-size: 13px; color: var(--text-primary); }
                 .session-count { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+
+                .status-box { grid-column: span 4; padding: 24px; }
+                .status-legend { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 10px; }
+                .legend-text { font-size: 11px; color: var(--text-muted); text-transform: capitalize; }
 
                 .top-pages-box { grid-column: span 4; padding: 24px; }
                 .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }

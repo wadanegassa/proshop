@@ -8,7 +8,8 @@ import {
     Layers,
     Users2,
     Store,
-    LogOut
+    LogOut,
+    Bell
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -34,6 +35,12 @@ const Sidebar = () => {
                 },
                 { icon: <Layers size={18} />, label: 'Category', path: '/categories' },
                 { icon: <Store size={18} />, label: 'Settings', path: '/settings' },
+                {
+                    icon: <Bell size={18} />, label: 'Notifications', path: '/notifications', subItems: [
+                        { label: 'Personal', path: '/notifications' },
+                        { label: 'System', path: '/notifications/all' },
+                    ]
+                },
             ]
         },
         {

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { productsAPI, getImageUrl } from '../services/api';
-import { Star, ChevronRight, Edit, ArrowLeft, Check, Truck, Tag, Clock, Share2, Heart, Award, ShieldCheck, Zap, Info, MoreHorizontal } from 'lucide-react';
+import { Star, ChevronRight, Edit, ArrowLeft, Check, Truck, Tag, Clock, Share2, Heart, Award, ShieldCheck, Zap, Info, MoreHorizontal, Trash2 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 const ProductDetailsPage = () => {
     const { id } = useParams();
@@ -9,6 +10,26 @@ const ProductDetailsPage = () => {
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeImage, setActiveImage] = useState(0);
+
+    const handleDeleteReview = async (reviewId) => {
+        if (!window.confirm('Are you sure you want to delete this review?')) return;
+        try {
+            await productsAPI.deleteReview(id, reviewId);
+            toast.success('Review deleted successfully');
+            setProduct(prev => ({
+                ...prev,
+                reviews: prev.reviews.filter(r => r._id !== reviewId),
+                numReviews: prev.numReviews - 1,
+                // Average rating will be updated on next fetch, or we can recalculate it here for instant feedback
+                rating: prev.reviews.length > 1
+                    ? (prev.reviews.filter(r => r._id !== reviewId).reduce((acc, r) => acc + r.rating, 0) / (prev.reviews.length - 1)).toFixed(1)
+                    : 0
+            }));
+        } catch (error) {
+            console.error('Delete review failed:', error);
+            toast.error('Failed to delete review');
+        }
+    };
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -216,6 +237,13 @@ const ProductDetailsPage = () => {
                                                 <Star key={starI} size={12} fill={starI < rev.rating ? "var(--primary)" : "none"} color={starI < rev.rating ? "var(--primary)" : "var(--text-muted)"} />
                                             ))}
                                         </div>
+                                        <button
+                                            className="rev-delete-btn"
+                                            onClick={() => handleDeleteReview(rev._id)}
+                                            title="Delete Review"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
                                     </div>
                                     <p className="rev-text">{rev.comment}</p>
                                 </div>
@@ -321,7 +349,9 @@ const ProductDetailsPage = () => {
                 .rev-avatar-larkon { width: 36px; height: 36px; border-radius: 10px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; }
                 .rev-meta h6 { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
                 .rev-meta span { font-size: 11px; color: var(--text-muted); }
-                .rev-stars { margin-left: auto; display: flex; gap: 2px; }
+                .rev-stars { display: flex; gap: 2px; }
+                .rev-delete-btn { width: 28px; height: 28px; border-radius: 6px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; margin-left: 10px; }
+                .rev-delete-btn:hover { background: #ef4444; color: white; transform: scale(1.1); }
                 .rev-text { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
 
                 .empty-reviews { padding: 60px 0; text-align: center; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 12px; }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { Search, Bell, Moon, Sun, User as UserIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -11,6 +11,7 @@ const AdminLayout = () => {
     const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
     const { isDarkMode, toggleTheme } = useTheme();
     const location = useLocation();
+    const navigate = useNavigate();
     const [showNotifications, setShowNotifications] = React.useState(false);
     const dropdownRef = React.useRef(null);
 
@@ -61,8 +62,11 @@ const AdminLayout = () => {
                                     <div className="notification-dropdown glass-card fade-in">
                                         <div className="dropdown-header">
                                             <h4>Notifications</h4>
-                                            {unreadCount > 0 && (
-                                                <button onClick={markAllAsRead}>Mark all read</button>
+                                            {notifications.length > 0 && (
+                                                <div className="header-links">
+                                                    <button onClick={markAllAsRead}>Mark all read</button>
+                                                    <button className="clear-all" onClick={clearAll}>Clear all</button>
+                                                </div>
                                             )}
                                         </div>
                                         <div className="dropdown-body">
@@ -231,9 +235,19 @@ const AdminLayout = () => {
                     background: transparent;
                     border: none;
                     color: var(--primary);
-                    font-size: 12px;
+                    font-size: 11px;
                     font-weight: 600;
                     cursor: pointer;
+                }
+                .header-links {
+                    display: flex;
+                    gap: 12px;
+                }
+                .clear-all {
+                    color: var(--text-muted) !important;
+                }
+                .clear-all:hover {
+                    color: #ef4444 !important;
                 }
                 .dropdown-body {
                     max-height: 360px;

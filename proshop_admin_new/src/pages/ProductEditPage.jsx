@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { productsAPI, categoriesAPI, uploadAPI, getImageUrl } from '../services/api';
-import { Upload, X, Plus, ChevronRight, Save, Trash2, ArrowLeft } from 'lucide-react';
+import { Upload, X, Plus, ChevronRight, Save, Trash2, ArrowLeft, Star } from 'lucide-react';
 
 const ProductEditPage = () => {
     const { id } = useParams();
@@ -14,10 +14,11 @@ const ProductEditPage = () => {
     const [formData, setFormData] = useState({
         name: '', category: '', brand: '', price: 0, countInStock: 0,
         description: '', gender: 'Men', weight: '', sku: '',
-        discount: 0, tax: 0, sizes: [], colors: []
+        discount: 0, tax: 0, sizes: [], colors: [], shoeSizes: []
     });
 
     const AVAILABLE_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
+    const AVAILABLE_SHOE_SIZES = ['38', '39', '40', '41', '42', '43', '44', '45', '46'];
     const AVAILABLE_COLORS = [
         { name: 'Red', hex: '#ef4444' }, { name: 'Blue', hex: '#3b82f6' },
         { name: 'Green', hex: '#22c55e' }, { name: 'Black', hex: '#000000' },
@@ -45,7 +46,10 @@ const ProductEditPage = () => {
                     discount: product.discount || 0,
                     tax: product.tax || 0,
                     sizes: product.sizes || [],
-                    colors: product.colors || []
+                    colors: product.colors || [],
+                    shoeSizes: product.shoeSizes || [],
+                    rating: product.rating,
+                    numReviews: product.numReviews
                 });
                 setImages(product.images || []);
                 setCategories(catRes.data.data.categories);
@@ -58,6 +62,12 @@ const ProductEditPage = () => {
     const toggleSize = (size) => {
         setFormData(prev => ({
             ...prev, sizes: prev.sizes.includes(size) ? prev.sizes.filter(s => s !== size) : [...prev.sizes, size]
+        }));
+    };
+
+    const toggleShoeSize = (size) => {
+        setFormData(prev => ({
+            ...prev, shoeSizes: prev.shoeSizes.includes(size) ? prev.shoeSizes.filter(s => s !== size) : [...prev.shoeSizes, size]
         }));
     };
 
@@ -92,13 +102,24 @@ const ProductEditPage = () => {
         e.preventDefault();
         setSubmitting(true);
         try {
-            const submissionData = { ...formData, images }; // Define submissionData
+            const submissionData = {
+                ...formData,
+                price: Number(formData.price),
+                countInStock: Number(formData.countInStock),
+                discount: Number(formData.discount),
+                tax: Number(formData.tax),
+                images
+            };
+
+            console.log('Submitting Product Update:', submissionData);
+
             await productsAPI.update(id, submissionData);
             toast.success('Product updated successfully!');
             setTimeout(() => navigate('/products'), 500);
         } catch (error) {
             console.error('Update failed:', error);
-            toast.error('Failed to update product.');
+            const errorMsg = error.response?.data?.message || 'Failed to update product.';
+            toast.error(errorMsg);
         } finally { setSubmitting(false); }
     };
 
@@ -132,13 +153,40 @@ const ProductEditPage = () => {
                         </div>
                         <div className="preview-info">
                             <h3>{formData.name || 'Product Name'}</h3>
-                            <p className="p-price">Price: <span>${formData.price}</span></p>
+                            <div className="p-price">
+                                {formData.discount > 0 ? (
+                                    <>
+                                        <span className="price-label">Price:</span>
+                                        <span className="old-price">${Number(formData.price).toFixed(2)}</span>
+                                        <span className="new-price">${(formData.price * (1 - formData.discount / 100)).toFixed(2)}</span>
+                                        <small className="discount-tag">({formData.discount}% off)</small>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="price-label">Price:</span>
+                                        <div className="current-price">${Number(formData.price).toFixed(2)}</div>
+                                    </>
+                                )}
+                            </div>
+                            <div className="p-rating-preview">
+                                <Star size={14} fill="#ffb400" color="#ffb400" />
+                                <span className="preview-rating-val">{formData.rating || 0}</span>
+                                <span className="preview-review-count">({formData.reviewCount || formData.numReviews || 0})</span>
+                            </div>
                             <div className="p-sizes">
                                 <span>Size:</span>
                                 <div className="size-tags">
                                     {formData.sizes.map(s => <span key={s}>{s}</span>)}
                                 </div>
                             </div>
+                            {formData.shoeSizes.length > 0 && (
+                                <div className="p-sizes">
+                                    <span>Shoe Size:</span>
+                                    <div className="size-tags">
+                                        {formData.shoeSizes.map(s => <span key={s}>{s}</span>)}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -245,6 +293,14 @@ const ProductEditPage = () => {
                                     ))}
                                 </div>
                             </div>
+                            <div className="variant-section">
+                                <label>Shoe Sizes</label>
+                                <div className="size-selector">
+                                    {AVAILABLE_SHOE_SIZES.map(s => (
+                                        <button key={s} type="button" onClick={() => toggleShoeSize(s)} className={`size-btn ${formData.shoeSizes.includes(s) ? 'active' : ''}`}>{s}</button>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -281,7 +337,16 @@ const ProductEditPage = () => {
                 .preview-image { aspect-ratio: 1; background: var(--sidebar-bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--divider); margin-bottom: 20px; }
                 .preview-image img { width: 100%; height: 100%; object-fit: contain; }
                 .preview-info h3 { font-size: 16px; margin-bottom: 12px; color: var(--text-primary); }
-                .p-price { font-size: 18px; font-weight: 700; color: var(--primary); }
+                .preview-info h3 { font-size: 16px; margin-bottom: 12px; color: var(--text-primary); }
+                .p-price { font-size: 18px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+                .price-label { font-size: 13px; color: var(--text-secondary); font-weight: 400; }
+                .old-price { text-decoration: line-through; color: var(--text-secondary); font-size: 14px; font-weight: 400; }
+                .new-price { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+                .discount-tag { background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+                .p-rating-preview { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+                .preview-rating-val { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+                .preview-review-count { font-size: 12px; color: var(--text-muted); }
+                .current-price { color: var(--text-primary); }
                 .size-tags { display: flex; gap: 6px; margin-top: 8px; }
                 .size-tags span { background: var(--surface-light); padding: 2px 8px; font-size: 11px; border-radius: 4px; }
 

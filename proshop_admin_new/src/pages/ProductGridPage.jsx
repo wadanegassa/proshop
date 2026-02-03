@@ -225,12 +225,19 @@ const ProductGridPage = () => {
                                     <h3 className="p-title">{product.name}</h3>
                                     <div className="p-rating">
                                         {[...Array(5)].map((_, i) => (
-                                            <Star key={i} size={14} fill={i < Math.floor(product.rating || 4) ? "#ffb400" : "none"} color="#ffb400" />
+                                            <Star key={i} size={14} fill={i < Math.floor(product.rating || 0) ? "#ffb400" : "none"} color="#ffb400" />
                                         ))}
-                                        <span>{product.rating || 4.5}</span>
+                                        <span>{product.rating || 0}</span>
                                     </div>
                                     <div className="p-price">
-                                        <span className="current-price">${product.price}</span>
+                                        {product.discount > 0 ? (
+                                            <>
+                                                <span className="current-price">${(product.price * (1 - product.discount / 100)).toFixed(2)}</span>
+                                                <span className="old-price" style={{ textDecoration: 'lineThrough', color: '#888', fontSize: '12px' }}>${product.price}</span>
+                                            </>
+                                        ) : (
+                                            <span className="current-price">${product.price.toFixed(2)}</span>
+                                        )}
                                     </div>
                                     <div className="p-stock">
                                         <span className={`stock-badge ${product.countInStock > 0 ? 'in-stock' : 'out-of-stock'}`}>

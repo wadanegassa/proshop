@@ -8,7 +8,7 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
     console.log('API Request:', config.url);
-    const token = localStorage.getItem('admin_token');
+    const token = sessionStorage.getItem('admin_token');
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
@@ -31,6 +31,7 @@ export const productsAPI = {
     create: (data) => api.post('/products', data),
     update: (id, data) => api.patch(`/products/${id}`, data),
     delete: (id) => api.delete(`/products/${id}`),
+    deleteReview: (productId, reviewId) => api.delete(`/products/${productId}/reviews/${reviewId}`),
 };
 
 export const categoriesAPI = {
@@ -49,9 +50,12 @@ export const ordersAPI = {
 
 export const notificationsAPI = {
     getAll: () => api.get('/notifications'),
+    adminGetAll: () => api.get('/notifications/admin'),
     markRead: (id) => api.patch(`/notifications/${id}/read`),
     markAllRead: () => api.patch('/notifications/read-all'),
     clearAll: () => api.delete('/notifications/clear'),
+    deleteMultiple: (ids) => api.delete('/notifications/delete-multiple', { data: { ids } }),
+    deleteOne: (id) => api.delete(`/notifications/${id}`),
 };
 
 export const analyticsAPI = {

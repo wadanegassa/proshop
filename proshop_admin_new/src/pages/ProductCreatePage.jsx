@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { productsAPI, categoriesAPI, uploadAPI, getImageUrl } from '../services/api';
-import { Upload, X, Plus, ChevronRight, Save, ArrowLeft, Image, UploadCloud } from 'lucide-react';
+import { Upload, X, Plus, ChevronRight, Save, ArrowLeft, Image, UploadCloud, Star } from 'lucide-react';
 
 const ProductCreatePage = () => {
     const navigate = useNavigate();
@@ -14,12 +14,11 @@ const ProductCreatePage = () => {
     const [formData, setFormData] = useState({
         name: '', category: '', brand: '', price: 0, countInStock: 0,
         description: '', gender: 'N/A', weight: '', sku: '',
-        discount: 0, tax: 0, sizes: [], colors: [],
+        discount: 0, tax: 0, sizes: [], colors: [], shoeSizes: [],
         specifications: [], highlights: [], status: 'Draft'
     });
 
-    const [newSpec, setNewSpec] = useState({ label: '', value: '' });
-    const [newHighlight, setNewHighlight] = useState('');
+    const AVAILABLE_SHOE_SIZES = ['38', '39', '40', '41', '42', '43', '44', '45', '46'];
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -35,6 +34,12 @@ const ProductCreatePage = () => {
     const toggleSize = (size) => {
         setFormData(prev => ({
             ...prev, sizes: prev.sizes.includes(size) ? prev.sizes.filter(s => s !== size) : [...prev.sizes, size]
+        }));
+    };
+
+    const toggleShoeSize = (size) => {
+        setFormData(prev => ({
+            ...prev, shoeSizes: prev.shoeSizes.includes(size) ? prev.shoeSizes.filter(s => s !== size) : [...prev.shoeSizes, size]
         }));
     };
 
@@ -73,7 +78,6 @@ const ProductCreatePage = () => {
         e.preventDefault();
         setSubmitting(true);
 
-        // Clean up data for submission
         const submissionData = {
             ...formData,
             price: Number(formData.price) || 0,
@@ -122,8 +126,8 @@ const ProductCreatePage = () => {
                                     <>
                                         <span className="price-label">Price:</span>
                                         <span className="old-price">${formData.price}</span>
-                                        <span className="new-price">${formData.price - formData.discount}</span>
-                                        <small className="discount-tag">({Math.round((formData.discount / formData.price) * 100)}% off)</small>
+                                        <span className="new-price">${(formData.price * (1 - formData.discount / 100)).toFixed(2)}</span>
+                                        <small className="discount-tag">({formData.discount}% off)</small>
                                     </>
                                 ) : (
                                     <>
@@ -131,6 +135,11 @@ const ProductCreatePage = () => {
                                         <span className="current-price">${formData.price || '0.00'}</span>
                                     </>
                                 )}
+                            </div>
+                            <div className="preview-rating-larkon" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '10px', color: '#ffb400' }}>
+                                <Star size={14} fill="#ffb400" />
+                                <span style={{ fontWeight: '700', fontSize: '14px', color: 'var(--text-primary)' }}>0.0</span>
+                                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>(0 Reviews)</span>
                             </div>
 
                             <div className="preview-variants">
@@ -155,6 +164,14 @@ const ProductCreatePage = () => {
                                                                     c === 'Purple' ? '#a855f7' : '#555'
                                                 }}></span>
                                             ))}
+                                        </div>
+                                    </div>
+                                )}
+                                {formData.shoeSizes.length > 0 && (
+                                    <div className="preview-variant-group">
+                                        <label>Shoe Sizes:</label>
+                                        <div className="pill-row">
+                                            {formData.shoeSizes.map(s => <span key={s} className="size-pill-small">{s}</span>)}
                                         </div>
                                     </div>
                                 )}
@@ -247,6 +264,15 @@ const ProductCreatePage = () => {
                                 </div>
                             </div>
 
+                            <div className="variant-section col-12">
+                                <label>Shoe Sizes (Optional)</label>
+                                <div className="size-selector-larkon">
+                                    {AVAILABLE_SHOE_SIZES.map(s => (
+                                        <button key={s} type="button" onClick={() => toggleShoeSize(s)} className={`size-pill-larkon ${formData.shoeSizes.includes(s) ? 'active' : ''}`}>{s}</button>
+                                    ))}
+                                </div>
+                            </div>
+
                             <div className="input-field col-12">
                                 <label>Description (Required)</label>
                                 <textarea name="description" value={formData.description} onChange={handleInputChange} placeholder="Type description..." rows="5" required></textarea>
@@ -280,8 +306,8 @@ const ProductCreatePage = () => {
                                 <input type="number" name="price" value={formData.price} onChange={handleInputChange} placeholder="0.00" required />
                             </div>
                             <div className="input-field col-4">
-                                <label>Discount</label>
-                                <input type="number" name="discount" value={formData.discount} onChange={handleInputChange} placeholder="0.00" />
+                                <label>Discount (%)</label>
+                                <input type="number" name="discount" value={formData.discount} onChange={handleInputChange} placeholder="0" min="0" max="100" />
                             </div>
                             <div className="input-field col-4">
                                 <label>Tax (%)</label>

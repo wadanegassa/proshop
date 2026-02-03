@@ -6,7 +6,7 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [token, setToken] = useState(localStorage.getItem('admin_token'));
+    const [token, setToken] = useState(sessionStorage.getItem('admin_token'));
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
         try {
             const response = await authAPI.login(email, password);
             const { token: newToken, data } = response.data;
-            localStorage.setItem('admin_token', newToken);
+            sessionStorage.setItem('admin_token', newToken);
             setToken(newToken);
             setUser(data.user);
             return { success: true };
@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = () => {
-        localStorage.removeItem('admin_token');
+        sessionStorage.removeItem('admin_token');
         setToken(null);
         setUser(null);
     };

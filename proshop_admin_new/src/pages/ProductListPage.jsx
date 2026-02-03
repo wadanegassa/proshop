@@ -141,7 +141,15 @@ const ProductListPage = () => {
                                     </td>
                                     <td>
                                         <div className="price-cell">
-                                            <span className="val">${product.price}</span>
+                                            {product.discount > 0 ? (
+                                                <div className="price-discounted">
+                                                    <span className="val-new">${(product.price * (1 - product.discount / 100)).toFixed(2)}</span>
+                                                    <span className="val-old">${product.price.toFixed(2)}</span>
+                                                    <span className="discount-pill-table">-{product.discount}%</span>
+                                                </div>
+                                            ) : (
+                                                <span className="val">${product.price.toFixed(2)}</span>
+                                            )}
                                         </div>
                                     </td>
                                     <td>
@@ -157,7 +165,7 @@ const ProductListPage = () => {
                                     <td>
                                         <div className="rating-cell">
                                             <div className="rating-badge">
-                                                ★ {product.rating || 4.5}
+                                                ★ {product.rating || 0}
                                             </div>
                                             <span className="review-count">({product.numReviews || 0})</span>
                                         </div>
@@ -235,6 +243,12 @@ const ProductListPage = () => {
                 .p-title { font-size: 14px; font-weight: 700; color: var(--text-primary); }
                 .p-subtitle { font-size: 12px; color: var(--text-secondary); }
 
+                .p-subtitle { font-size: 12px; color: var(--text-secondary); }
+                
+                .price-discounted { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+                .val-new { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+                .val-old { font-size: 12px; text-decoration: line-through; color: var(--text-secondary); }
+                .discount-pill-table { font-size: 10px; background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 2px 5px; border-radius: 4px; font-weight: 700; }
                 .price-cell .val { font-size: 15px; font-weight: 700; color: var(--text-primary); }
                 
                 .status-pill { 

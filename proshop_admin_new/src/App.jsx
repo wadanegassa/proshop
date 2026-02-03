@@ -15,6 +15,7 @@ import OrderListPage from './pages/OrderListPage';
 import OrderDetailPage from './pages/OrderDetailPage';
 import CustomersPage from './pages/CustomersPage';
 import NotificationsPage from './pages/NotificationsPage';
+import AdminNotificationsPage from './pages/AdminNotificationsPage';
 import SettingsPage from './pages/SettingsPage';
 import PrivateRoute from './components/PrivateRoute';
 import { Layers } from 'lucide-react';
@@ -56,6 +57,7 @@ function App() {
                                 <Route path="faqs" element={<PrivateRoute><Placeholder title="FAQs" /></PrivateRoute>} />
                                 <Route path="analytics" element={<PrivateRoute><Placeholder title="Deep Analytics" /></PrivateRoute>} />
                                 <Route path="notifications" element={<PrivateRoute><NotificationsPage /></PrivateRoute>} />
+                                <Route path="notifications/all" element={<PrivateRoute><AdminNotificationsPage /></PrivateRoute>} />
                                 <Route path="settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
                             </Route>
                         </Routes>

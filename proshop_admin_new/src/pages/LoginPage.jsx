@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { ShoppingBag, Mail, Lock, Loader2 } from 'lucide-react';
 
 const LoginPage = () => {
-    const [email, setEmail] = useState('admin@proshop.com');
-    const [password, setPassword] = useState('proshop1234');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -38,7 +38,7 @@ const LoginPage = () => {
                     <p>Enter your credentials to access the dashboard</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="login-form">
+                <form onSubmit={handleSubmit} className="login-form" autoComplete="off">
                     <div className="form-group">
                         <label>Email Address</label>
                         <div className="input-wrap">
@@ -49,6 +49,7 @@ const LoginPage = () => {
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="admin@proshop.com"
                                 required
+                                autoComplete="off"
                             />
                         </div>
                     </div>
@@ -63,6 +64,7 @@ const LoginPage = () => {
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="••••••••"
                                 required
+                                autoComplete="new-password"
                             />
                         </div>
                     </div>
