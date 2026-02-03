@@ -1,5 +1,5 @@
 class ApiConstants {
-  static const String baseUrl = 'http://192.168.0.118:5000/api/v1'; // Real device: Use computer's Wi-Fi IP
+  static const String baseUrl = 'http://10.232.82.238:5000/api/v1'; // Real Device: Use your PC's IP. Emulator: 10.0.2.2
   // For Android Emulator use: 'http://10.0.2.2:5000/api/v1'
   // For web use: 'http://localhost:5000/api/v1'
   
