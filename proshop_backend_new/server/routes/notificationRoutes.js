@@ -9,9 +9,11 @@ router.use(authMiddleware.protect);
 // Notifications are for all users
 
 router.get('/', notificationController.getNotifications);
+router.get('/admin', authMiddleware.restrictTo('admin'), notificationController.adminGetAllNotifications);
 router.patch('/:id/read', notificationController.markAsRead);
 router.patch('/read-all', notificationController.markAllAsRead);
 router.delete('/clear', notificationController.clearAll);
+router.delete('/delete-multiple', notificationController.deleteSelected);
 router.delete('/:id', notificationController.deleteNotification);
 
 module.exports = router;
