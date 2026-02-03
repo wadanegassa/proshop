@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const compression = require('compression');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
@@ -23,6 +24,7 @@ app.use(helmet({
     crossOriginResourcePolicy: false,
 }));
 app.use(cors());
+app.use(compression());
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
 }
