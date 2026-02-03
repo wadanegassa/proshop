@@ -1,7 +1,7 @@
 class ApiConstants {
-  static const String baseUrl = 'http://10.232.87.165:5000/api/v1'; // Local IP for mobile/emulator access
-  // For web use: 'http://localhost:5000/api/v1'
+  static const String baseUrl = 'http://192.168.0.118:5000/api/v1'; // Real device: Use computer's Wi-Fi IP
   // For Android Emulator use: 'http://10.0.2.2:5000/api/v1'
+  // For web use: 'http://localhost:5000/api/v1'
   
   // Auth endpoints
   static const String register = '$baseUrl/auth/register';
@@ -27,4 +27,6 @@ class ApiConstants {
   // Analytics (Shared or admin specific)
   static const String analytics = '$baseUrl/analytics';
   static const String paypalConfig = '$baseUrl/orders/config/paypal';
+  static const String stripePaymentIntent = '$baseUrl/stripe/create-payment-intent';
+  static const String stripeConfig = '$baseUrl/stripe/config';
 }

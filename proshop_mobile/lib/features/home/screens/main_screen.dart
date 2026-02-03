@@ -30,10 +30,11 @@ class _MainScreenState extends State<MainScreen> {
       body: _screens[_selectedIndex],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: Theme.of(context).cardColor,
+          border: Border(top: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.05))),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withOpacity(0.1),
               blurRadius: 20,
               offset: const Offset(0, -5),
             ),
@@ -46,8 +47,8 @@ class _MainScreenState extends State<MainScreen> {
               _selectedIndex = index;
             });
           },
-          backgroundColor: AppColors.surface,
-          indicatorColor: AppColors.primary.withOpacity(0.2),
+          backgroundColor: Theme.of(context).cardColor,
+          indicatorColor: AppColors.primary.withOpacity(0.1),
           destinations: const [
             NavigationDestination(
               icon: Icon(Icons.home_outlined),

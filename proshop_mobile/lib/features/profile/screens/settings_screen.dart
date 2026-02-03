@@ -62,15 +62,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildSectionHeader('Profile Information'),
+                         _buildSectionHeader(context, 'Profile Information'),
                         const SizedBox(height: 24),
-                        _buildTextField('Full Name', _nameController),
+                        _buildTextField(context, 'Full Name', _nameController),
                         const SizedBox(height: 16),
-                        _buildTextField('Email Address', _emailController, enabled: false),
+                        _buildTextField(context, 'Email Address', _emailController, enabled: false),
                         const SizedBox(height: 32),
-                        _buildSectionHeader('Security'),
+                         _buildSectionHeader(context, 'Security'),
                         const SizedBox(height: 16),
                         _buildNavigationItem(
+                          context,
                           icon: Icons.lock_outline,
                           title: 'Change Password',
                           onTap: () {
@@ -79,6 +80,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         const SizedBox(height: 12),
                         _buildNavigationItem(
+                          context,
                           icon: Icons.security_outlined,
                           title: 'Two-Factor Authentication',
                           onTap: () {},
@@ -97,54 +99,72 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(BuildContext context, String title) {
     return Text(
       title,
-      style: const TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
-      ),
+      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, {bool enabled = true}) {
+  Widget _buildTextField(BuildContext context, String label, TextEditingController controller, {bool enabled = true}) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: AppColors.textMuted.withOpacity(0.2)),
+        border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.05)),
       ),
       child: TextFormField(
         controller: controller,
         enabled: enabled,
-        style: TextStyle(color: enabled ? Colors.white : AppColors.textMuted),
+        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: enabled ? null : Theme.of(context).hintColor,
+            ),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(color: AppColors.textMuted),
+          labelStyle: TextStyle(color: Theme.of(context).hintColor),
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: const BorderSide(color: AppColors.primary, width: 2),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildNavigationItem({required IconData icon, required String title, required VoidCallback onTap}) {
+  Widget _buildNavigationItem(BuildContext context, {required IconData icon, required String title, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(15),
+          border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.05)),
         ),
         child: Row(
           children: [
-            Icon(icon, color: AppColors.primary),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: AppColors.primary, size: 20),
+            ),
             const SizedBox(width: 16),
-            Text(title, style: const TextStyle(color: Colors.white)),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
             const Spacer(),
-            const Icon(Icons.chevron_right, color: AppColors.textMuted),
+            Icon(Icons.chevron_right_rounded, color: Theme.of(context).hintColor),
           ],
         ),
       ),
@@ -158,7 +178,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         onPressed: _isLoading ? null : () {},
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 18),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
         ),
         child: const Text('Save Changes', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       ),
@@ -177,10 +196,17 @@ class BackButtonCircle extends StatelessWidget {
         height: 40,
         width: 40,
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(12),
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.05)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+            ),
+          ],
         ),
-        child: const Icon(Icons.chevron_left, color: Colors.white),
+        child: Icon(Icons.chevron_left_rounded, color: Theme.of(context).iconTheme.color, size: 28),
       ),
     );
   }

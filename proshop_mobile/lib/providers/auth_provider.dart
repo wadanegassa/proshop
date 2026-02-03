@@ -8,11 +8,13 @@ import '../core/constants/api_constants.dart';
 class AuthProvider with ChangeNotifier {
   UserModel? _user;
   bool _isAuthenticated = false;
+  String? _token;
   String? _error;
   final _storage = const FlutterSecureStorage();
 
   UserModel? get user => _user;
   bool get isAuthenticated => _isAuthenticated;
+  String? get token => _token;
   String? get error => _error;
 
   // Auto Login
@@ -29,6 +31,7 @@ class AuthProvider with ChangeNotifier {
           final responseData = json.decode(response.body);
           _user = UserModel.fromJson(responseData['data']['user']);
           _isAuthenticated = true;
+          _token = token;
           notifyListeners();
         } else {
           await _storage.delete(key: 'token');
@@ -55,6 +58,7 @@ class AuthProvider with ChangeNotifier {
       if (response.statusCode == 200) {
         _user = UserModel.fromJson(responseData['data']['user']);
         _isAuthenticated = true;
+        _token = responseData['token'];
         await _storage.write(key: 'token', value: responseData['token']);
         notifyListeners();
         return true;
@@ -91,6 +95,7 @@ class AuthProvider with ChangeNotifier {
       if (response.statusCode == 201) {
         _user = UserModel.fromJson(responseData['data']['user']);
         _isAuthenticated = true;
+        _token = responseData['token'];
         await _storage.write(key: 'token', value: responseData['token']);
         notifyListeners();
         return true;
@@ -110,6 +115,7 @@ class AuthProvider with ChangeNotifier {
   Future<void> logout() async {
     _user = null;
     _isAuthenticated = false;
+    _token = null;
     await _storage.delete(key: 'token');
     notifyListeners();
   }

@@ -26,12 +26,11 @@ class ExploreScreen extends StatelessWidget {
                       'Explore Categories',
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
                           ),
                     ),
                   ),
                   SizedBox(
-                    height: 50,
+                    height: 36,
                     child: ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       scrollDirection: Axis.horizontal,
@@ -41,19 +40,42 @@ class ExploreScreen extends StatelessWidget {
                         final isSelected = productProvider.selectedCategory == category;
                         return GestureDetector(
                           onTap: () => productProvider.setCategory(category),
-                          child: Container(
-                            margin: const EdgeInsets.only(right: 12),
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            decoration: BoxDecoration(
-                              color: isSelected ? AppColors.primary : AppColors.surface,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              category,
-                              style: TextStyle(
-                                color: isSelected ? Colors.white : AppColors.textMuted,
-                                fontWeight: FontWeight.bold,
+                          child: AnimatedScale(
+                            scale: isSelected ? 1.05 : 1.0,
+                            duration: const Duration(milliseconds: 200),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              margin: const EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              decoration: BoxDecoration(
+                                gradient: isSelected ? AppColors.primaryGradient : null,
+                                color: isSelected ? null : Theme.of(context).cardColor.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isSelected 
+                                      ? Colors.transparent 
+                                      : Theme.of(context).dividerColor.withOpacity(0.03),
+                                ),
+                                boxShadow: isSelected
+                                    ? [
+                                        BoxShadow(
+                                          color: AppColors.primary.withOpacity(0.2),
+                                          blurRadius: 6,
+                                          offset: const Offset(0, 3),
+                                        )
+                                      ]
+                                    : [],
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                category,
+                                style: TextStyle(
+                                  color: isSelected 
+                                      ? Colors.white 
+                                      : Theme.of(context).hintColor.withOpacity(0.7),
+                                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                                  fontSize: 12,
+                                ),
                               ),
                             ),
                           ),
@@ -66,14 +88,14 @@ class ExploreScreen extends StatelessWidget {
                     child: productProvider.isLoading
                         ? const Center(child: CircularProgressIndicator())
                         : products.isEmpty
-                            ? const Center(child: Text('No products in this category', style: TextStyle(color: Colors.white)))
+                            ? Center(child: Text('No products in this category', style: TextStyle(color: Theme.of(context).hintColor)))
                             : GridView.builder(
                                 padding: const EdgeInsets.symmetric(horizontal: 24),
                                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 2,
                                   mainAxisSpacing: 20,
                                   crossAxisSpacing: 20,
-                                  childAspectRatio: 0.7,
+                                  childAspectRatio: 0.52,
                                 ),
                                 itemCount: products.length,
                                 itemBuilder: (context, index) {

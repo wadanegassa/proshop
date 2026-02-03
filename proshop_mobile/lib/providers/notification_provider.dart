@@ -16,24 +16,27 @@ class NotificationProvider with ChangeNotifier {
   int get unreadCount => _notifications.where((n) => !n.read).length;
 
   Future<void> fetchNotifications() async {
-    _isLoading = true;
-    notifyListeners();
+    // Only show loading indicator if we don't have data yet
+    if (_notifications.isEmpty) {
+      _isLoading = true;
+      notifyListeners();
+    }
 
-    print('Fetching notifications...');
     try {
       final token = await _storage.read(key: 'token');
-      print('Token: $token');
-      final url = '${ApiConstants.baseUrl}/notifications';
-      print('Requesting: $url');
+      if (token == null) {
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
+
+      final url = ApiConstants.notifications;
       
       final response = await http.get(
         Uri.parse(url),
         headers: {'Authorization': 'Bearer $token'},
       );
       
-      print('Response Status: ${response.statusCode}');
-      print('Response Body: ${response.body}');
-
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
         final List<dynamic> data = responseData['data']['notifications'];
@@ -51,7 +54,7 @@ class NotificationProvider with ChangeNotifier {
     try {
       final token = await _storage.read(key: 'token');
       await http.patch(
-        Uri.parse('${ApiConstants.baseUrl}/api/v1/notifications/$id/read'),
+        Uri.parse('${ApiConstants.notifications}/$id/read'),
         headers: {'Authorization': 'Bearer $token'},
       );
       
@@ -69,7 +72,7 @@ class NotificationProvider with ChangeNotifier {
     try {
       final token = await _storage.read(key: 'token');
       await http.patch(
-        Uri.parse('${ApiConstants.baseUrl}/api/v1/notifications/read-all'),
+        Uri.parse('${ApiConstants.notifications}/read-all'),
         headers: {'Authorization': 'Bearer $token'},
       );
       
@@ -93,27 +96,10 @@ class NotificationProvider with ChangeNotifier {
 
     try {
       final token = await _storage.read(key: 'token');
-      // Assuming a delete endpoint exists or just clearing locally if server doesn't support individual delete
-      // Based on implementation plan, we had clearAll but not individual delete. 
-      // User asked for "delete option". I should implement individual delete in backend or just use clearAll for now?
-      // Wait, backend implementation only showed clearAll: await Notification.deleteMany({});
-      // I should modify backend to support individual delete or just clear all. 
-      // User specifically said "delete option it enable also".
-      // Let's implement individual delete in backend too.
-      // But for now, let's just write the provider correctly assuming the endpoint will be there.
-      // Wait, I missed adding individual delete route in implementation plan. I should fix that.
-      // I will assume I'll add router.delete('/:id') in notificationRoutes.js soon.
-      
-      /* 
-       For now, let's just verify if backend has delete route.
-       notificationRoutes.js: 
-       router.get('/', ...);
-       router.patch('/:id/read', ...);
-       router.patch('/read-all', ...);
-       router.delete('/', ...); // clearAll
-       
-       It seems I need to add individual delete support.
-      */
+      await http.delete(
+        Uri.parse('${ApiConstants.notifications}/$id'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
     } catch (e) {
        _notifications.insert(existingIndex, existingNotification);
        notifyListeners();
@@ -125,7 +111,7 @@ class NotificationProvider with ChangeNotifier {
     try {
       final token = await _storage.read(key: 'token');
       await http.delete(
-        Uri.parse('${ApiConstants.baseUrl}/api/v1/notifications'),
+        Uri.parse('${ApiConstants.notifications}/clear'),
         headers: {'Authorization': 'Bearer $token'},
       );
       _notifications.clear();

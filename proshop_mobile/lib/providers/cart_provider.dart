@@ -9,6 +9,10 @@ import '../core/constants/api_constants.dart';
 class CartProvider with ChangeNotifier {
   Map<String, CartItemModel> _items = {};
   final _storage = const FlutterSecureStorage();
+  
+  CartProvider() {
+    _loadFromStorage();
+  }
 
   Map<String, CartItemModel> get items => {..._items};
 
@@ -20,17 +24,54 @@ class CartProvider with ChangeNotifier {
     double total = 0.0;
     _items.forEach((key, cartItem) {
       if (cartItem.isSelected) {
-        total += cartItem.product.price * cartItem.quantity;
+        total += cartItem.product.discountedPrice * cartItem.quantity;
       }
     });
     return total;
   }
 
-  void toggleSelection(String productId) {
-    if (_items.containsKey(productId)) {
-      _items[productId]!.isSelected = !_items[productId]!.isSelected;
+  void toggleSelection(String key) {
+    if (_items.containsKey(key)) {
+      _items[key]!.isSelected = !_items[key]!.isSelected;
+      _saveToStorage();
       notifyListeners();
     }
+  }
+
+  void selectOnly(String key) {
+    _items.forEach((k, item) {
+      item.isSelected = (k == key);
+    });
+    _saveToStorage();
+    notifyListeners();
+  }
+
+  Future<void> _saveToStorage() async {
+    try {
+      final cartData = _items.map((key, value) => MapEntry(key, value.toJson()));
+      await _storage.write(key: 'cart', value: json.encode(cartData));
+    } catch (e) {
+      debugPrint('Error saving cart to storage: $e');
+    }
+  }
+
+  Future<void> _loadFromStorage() async {
+    try {
+      final cartDataString = await _storage.read(key: 'cart');
+      if (cartDataString != null) {
+        final Map<String, dynamic> decodedData = json.decode(cartDataString);
+        final Map<String, CartItemModel> loadedItems = {};
+        decodedData.forEach((key, value) {
+          loadedItems[key] = CartItemModel.fromJson(value);
+        });
+        _items = loadedItems;
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error loading cart from storage: $e');
+    }
+    // Also try to fetch from backend if logged in
+    fetchCart();
   }
 
   Future<void> fetchCart() async {
@@ -49,9 +90,21 @@ class CartProvider with ChangeNotifier {
         final Map<String, CartItemModel> loadedItems = {};
         for (var item in cartData) {
           final prod = ProductModel.fromJson(item['product']);
-          loadedItems[prod.id] = CartItemModel(product: prod, quantity: item['quantity']);
+          final String size = item['size'] ?? '';
+          final String color = item['color'] ?? '';
+          final String shoeSize = item['shoeSize'] ?? '';
+          final String key = '${prod.id}-$size-$color-$shoeSize';
+          
+          loadedItems[key] = CartItemModel(
+            product: prod, 
+            quantity: item['quantity'],
+            selectedSize: size.isNotEmpty ? size : null,
+            selectedColor: color.isNotEmpty ? color : null,
+            selectedShoeSize: shoeSize.isNotEmpty ? shoeSize : null,
+          );
         }
         _items = loadedItems;
+        _saveToStorage();
         notifyListeners();
       }
     } catch (e) {
@@ -66,7 +119,10 @@ class CartProvider with ChangeNotifier {
 
       final cartData = _items.values.map((item) => {
         'product': item.product.id,
-        'quantity': item.quantity
+        'quantity': item.quantity,
+        'size': item.selectedSize ?? '',
+        'color': item.selectedColor ?? '',
+        'shoeSize': item.selectedShoeSize ?? ''
       }).toList();
 
       await http.post(
@@ -82,51 +138,74 @@ class CartProvider with ChangeNotifier {
     }
   }
 
-  void addItem(ProductModel product) {
-    if (_items.containsKey(product.id)) {
+  void addItem(ProductModel product, {String? size, String? color, String? shoeSize}) {
+    final String key = '${product.id}-${size ?? ''}-${color ?? ''}-${shoeSize ?? ''}';
+    
+    if (_items.containsKey(key)) {
       _items.update(
-        product.id,
+        key,
         (existingItem) => CartItemModel(
           product: existingItem.product,
           quantity: existingItem.quantity + 1,
+          selectedSize: existingItem.selectedSize,
+          selectedColor: existingItem.selectedColor,
+          selectedShoeSize: existingItem.selectedShoeSize,
         ),
       );
     } else {
       _items.putIfAbsent(
-        product.id,
-        () => CartItemModel(product: product),
+        key,
+        () => CartItemModel(
+          product: product,
+          selectedSize: size,
+          selectedColor: color,
+          selectedShoeSize: shoeSize,
+        ),
       );
     }
+    _saveToStorage();
     notifyListeners();
     syncCart();
   }
 
-  void removeItem(String productId) {
-    _items.remove(productId);
+  void removeItem(String key) {
+    _items.remove(key);
+    _saveToStorage();
     notifyListeners();
     syncCart();
   }
 
-  void removeSingleItem(String productId) {
-    if (!_items.containsKey(productId)) return;
-    if (_items[productId]!.quantity > 1) {
+  void removeSingleItem(String key) {
+    if (!_items.containsKey(key)) return;
+    if (_items[key]!.quantity > 1) {
       _items.update(
-        productId,
+        key,
         (existingItem) => CartItemModel(
           product: existingItem.product,
           quantity: existingItem.quantity - 1,
+          selectedSize: existingItem.selectedSize,
+          selectedColor: existingItem.selectedColor,
+          selectedShoeSize: existingItem.selectedShoeSize,
         ),
       );
     } else {
-      _items.remove(productId);
+      _items.remove(key);
     }
+    _saveToStorage();
     notifyListeners();
     syncCart();
   }
 
   void clear() {
     _items = {};
+    _saveToStorage();
     notifyListeners();
     syncCart();
+  }
+
+  void clearLocalOnly() {
+    _items = {};
+    _saveToStorage();
+    notifyListeners();
   }
 }

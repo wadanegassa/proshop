@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../providers/settings_provider.dart';
 import '../../../routes/app_routes.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/order_provider.dart';
+import '../../../providers/cart_provider.dart';
 import '../../../core/widgets/design_background.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -35,8 +37,8 @@ class ProfileScreen extends StatelessWidget {
                         ),
                         child: CircleAvatar(
                           radius: 40,
-                          backgroundColor: AppColors.surface,
-                          child: const Icon(Icons.person_outline, size: 40, color: AppColors.primary),
+                          backgroundColor: Theme.of(context).cardColor,
+                          child: Icon(Icons.person_outline, size: 40, color: AppColors.primary),
                         ),
                       ),
                       const SizedBox(width: 20),
@@ -46,17 +48,15 @@ class ProfileScreen extends StatelessWidget {
                           children: [
                             Text(
                               user.name,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
+                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               user.email,
-                              style: const TextStyle(
-                                color: AppColors.textSecondary,
+                              style: TextStyle(
+                                color: Theme.of(context).hintColor,
                                 fontSize: 14,
                               ),
                             ),
@@ -71,19 +71,27 @@ class ProfileScreen extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    padding: const EdgeInsets.symmetric(vertical: 24),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(25),
+                      color: Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.05)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 15,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        _buildStatItem('Orders', orderProvider.orders.length.toString()),
-                        _buildDivider(),
-                        _buildStatItem('Reviews', '0'),
-                        _buildDivider(),
-                        _buildStatItem('Wishlist', '0'),
+                        _buildStatItem(context, 'Orders', orderProvider.orders.length.toString()),
+                        _buildDivider(context),
+                        _buildStatItem(context, 'Reviews', '0'),
+                        _buildDivider(context),
+                        _buildStatItem(context, 'Wishlist', '0'),
                       ],
                     ),
                   ),
@@ -96,27 +104,31 @@ class ProfileScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
                     children: [
-                      _buildSectionHeader('General'),
+                      _buildSectionHeader(context, 'General'),
                       const SizedBox(height: 16),
                       _buildProfileItem(
+                        context,
                         icon: Icons.shopping_bag_outlined,
                         title: 'My Orders',
                         subtitle: 'View your order history',
                         onTap: () => Navigator.pushNamed(context, AppRoutes.orders),
                       ),
                       _buildProfileItem(
+                        context,
                         icon: Icons.favorite_border,
                         title: 'Wishlist',
                         subtitle: 'Your favorite items',
                         onTap: () => Navigator.pushNamed(context, AppRoutes.wishlist),
                       ),
                       _buildProfileItem(
+                        context,
                         icon: Icons.person_outline,
                         title: 'Account Settings',
                         subtitle: 'Manage your profile and security',
                         onTap: () => Navigator.pushNamed(context, AppRoutes.settings),
                       ),
                       _buildProfileItem(
+                        context,
                         icon: Icons.notifications_none,
                         title: 'Notifications',
                         subtitle: 'Stay updated on your orders',
@@ -124,15 +136,22 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       
                       const SizedBox(height: 24),
-                      _buildSectionHeader('Preferences'),
+                      _buildSectionHeader(context, 'Appearance'),
+                      const SizedBox(height: 16),
+                      _buildThemeSelector(context),
+                      
+                      const SizedBox(height: 24),
+                      _buildSectionHeader(context, 'Preferences'),
                       const SizedBox(height: 16),
                       _buildProfileItem(
+                        context,
                         icon: Icons.location_on_outlined,
                         title: 'Saved Addresses',
                         subtitle: 'Manage your delivery locations',
                         onTap: () {},
                       ),
                       _buildProfileItem(
+                        context,
                         icon: Icons.help_outline,
                         title: 'Help Center',
                         subtitle: 'Frequently asked questions',
@@ -153,7 +172,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatItem(String label, String value) {
+  Widget _buildStatItem(BuildContext context, String label, String value) {
     return Column(
       children: [
         Text(
@@ -163,27 +182,27 @@ class ProfileScreen extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+          style: TextStyle(color: Theme.of(context).hintColor, fontSize: 12),
         ),
       ],
     );
   }
 
-  Widget _buildDivider() {
+  Widget _buildDivider(BuildContext context) {
     return Container(
       height: 30,
       width: 1,
-      color: AppColors.textMuted.withOpacity(0.2),
+      color: Theme.of(context).dividerColor.withOpacity(0.1),
     );
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(BuildContext context, String title) {
     return Align(
       alignment: Alignment.centerLeft,
       child: Text(
         title,
-        style: const TextStyle(
-          color: AppColors.textSecondary,
+        style: TextStyle(
+          color: AppColors.primary,
           fontSize: 14,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.2,
@@ -192,7 +211,8 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileItem({
+  Widget _buildProfileItem(
+    BuildContext context, {
     required IconData icon,
     required String title,
     required String subtitle,
@@ -201,28 +221,31 @@ class ProfileScreen extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.05)),
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: AppColors.primary.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
           ),
-          child: Icon(icon, color: AppColors.primary),
+          child: Icon(icon, color: AppColors.primary, size: 22),
         ),
         title: Text(
           title,
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
         ),
         subtitle: Text(
           subtitle,
-          style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+          style: TextStyle(color: Theme.of(context).hintColor, fontSize: 12),
         ),
-        trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 20),
+        trailing: Icon(Icons.chevron_right_rounded, color: Theme.of(context).hintColor, size: 20),
         onTap: onTap,
       ),
     );
@@ -233,6 +256,7 @@ class ProfileScreen extends StatelessWidget {
       width: double.infinity,
       child: TextButton(
         onPressed: () {
+          context.read<CartProvider>().clearLocalOnly();
           context.read<AuthProvider>().logout();
           Navigator.pushNamedAndRemoveUntil(
             context,
@@ -254,6 +278,130 @@ class ProfileScreen extends StatelessWidget {
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThemeSelector(BuildContext context) {
+    return Consumer<SettingsProvider>(  
+      builder: (context, settings, child) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.05)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.brightness_6, color: AppColors.primary, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Theme Mode',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildThemeOption(
+                      context,
+                      icon: Icons.light_mode_rounded,
+                      label: 'Light',
+                      isSelected: settings.themeMode == ThemeMode.light,
+                      onTap: () => settings.setThemeMode(ThemeMode.light),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildThemeOption(
+                      context,
+                      icon: Icons.dark_mode_rounded,
+                      label: 'Dark',
+                      isSelected: settings.themeMode == ThemeMode.dark,
+                      onTap: () => settings.setThemeMode(ThemeMode.dark),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildThemeOption(
+                      context,
+                      icon: Icons.brightness_auto_rounded,
+                      label: 'System',
+                      isSelected: settings.themeMode == ThemeMode.system,
+                      onTap: () => settings.setThemeMode(ThemeMode.system),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildThemeOption(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? AppColors.primary.withOpacity(0.15) 
+              : Theme.of(context).scaffoldBackgroundColor.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected 
+                ? AppColors.primary 
+                : Theme.of(context).dividerColor.withOpacity(0.1),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color: isSelected 
+                  ? AppColors.primary 
+                  : Theme.of(context).hintColor,
+              size: 28,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected 
+                    ? AppColors.primary 
+                    : Theme.of(context).hintColor,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                fontSize: 13,
+              ),
+            ),
+          ],
         ),
       ),
     );

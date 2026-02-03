@@ -39,8 +39,10 @@ class _CartScreenState extends State<CartScreen> {
                 padding: const EdgeInsets.all(24.0),
                 child: Row(
                   children: [
-                    const BackButtonCircle(),
-                    const SizedBox(width: 20),
+                    if (Navigator.of(context).canPop()) ...[
+                      const BackButtonCircle(),
+                      const SizedBox(width: 20),
+                    ],
                     Text(
                       'My Shopping Cart',
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -55,10 +57,10 @@ class _CartScreenState extends State<CartScreen> {
                   builder: (context, cartProvider, child) {
                     final items = cartProvider.items.values.toList();
                     if (items.isEmpty) {
-                      return const Center(
+                      return Center(
                         child: Text(
                           'Your cart is empty',
-                          style: TextStyle(color: AppColors.textMuted),
+                          style: TextStyle(color: Theme.of(context).hintColor),
                         ),
                       );
                     }
@@ -95,38 +97,44 @@ class CheckoutSummary extends StatelessWidget {
         
         final shippingFee = settingsProvider.shippingFee;
         final discount = subtotal * (settingsProvider.globalDiscount / 100);
-        // Tax is usually calculated on (subtotal - discount) or just subtotal depending on region.
-        // We'll calculate tax on subtotal to mimic CheckoutScreen logic for now.
         final tax = subtotal * settingsProvider.taxRate;
-        
-        // Final Total
         final total = subtotal + shippingFee + tax - discount;
 
         return Container(
           padding: const EdgeInsets.all(24),
-          decoration: const BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.only(
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(40),
               topRight: Radius.circular(40),
             ),
+            border: Border.all(
+              color: Theme.of(context).dividerColor.withOpacity(0.05),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, -5),
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildSummaryRow('Subtotal:', '\$${subtotal.toStringAsFixed(2)}'),
+              _buildSummaryRow(context, 'Subtotal:', '\$${subtotal.toStringAsFixed(2)}'),
               const SizedBox(height: 12),
-              _buildSummaryRow('Shipping:', '\$${shippingFee.toStringAsFixed(2)}'),
+              _buildSummaryRow(context, 'Shipping:', '\$${shippingFee.toStringAsFixed(2)}'),
               const SizedBox(height: 12),
               if (settingsProvider.taxRate > 0) ...[
-                 _buildSummaryRow('Tax (${(settingsProvider.taxRate*100).toStringAsFixed(0)}%):', '\$${tax.toStringAsFixed(2)}'),
+                 _buildSummaryRow(context, 'Tax (${(settingsProvider.taxRate*100).toStringAsFixed(0)}%):', '\$${tax.toStringAsFixed(2)}'),
                  const SizedBox(height: 12),
               ],
               if (settingsProvider.globalDiscount > 0) ...[
-                _buildSummaryRow('Discount (${settingsProvider.globalDiscount.toStringAsFixed(0)}%):', '-\$${discount.toStringAsFixed(2)}', isDiscount: true),
+                _buildSummaryRow(context, 'Discount (${settingsProvider.globalDiscount.toStringAsFixed(0)}%):', '-\$${discount.toStringAsFixed(2)}', isDiscount: true),
                 const SizedBox(height: 20),
               ],
-              const Divider(color: AppColors.textMuted, thickness: 0.5),
+              Divider(color: Theme.of(context).dividerColor.withOpacity(0.1), thickness: 1),
               const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -139,7 +147,7 @@ class CheckoutSummary extends StatelessWidget {
                   ),
                   Text(
                     '\$${total.toStringAsFixed(2)}',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           color: AppColors.primary,
                           fontWeight: FontWeight.bold,
                         ),
@@ -152,10 +160,7 @@ class CheckoutSummary extends StatelessWidget {
                   Navigator.pushNamed(context, AppRoutes.checkout);
                 } : null,
                 style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 60),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 18),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -168,7 +173,7 @@ class CheckoutSummary extends StatelessWidget {
                         color: Colors.white.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.chevron_right, color: Colors.white),
+                      child: const Icon(Icons.chevron_right_rounded, color: Colors.white),
                     ),
                   ],
                 ),
@@ -180,15 +185,15 @@ class CheckoutSummary extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryRow(String label, String value, {bool isDiscount = false}) {
+  Widget _buildSummaryRow(BuildContext context, String label, String value, {bool isDiscount = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 16)),
+        Text(label, style: TextStyle(color: Theme.of(context).hintColor, fontSize: 16)),
         Text(
           value,
           style: TextStyle(
-            color: isDiscount ? AppColors.success : AppColors.textPrimary,
+            color: isDiscount ? AppColors.success : Theme.of(context).textTheme.bodyLarge?.color,
             fontWeight: FontWeight.w600,
             fontSize: 16,
           ),
@@ -204,21 +209,22 @@ class BackButtonCircle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => Navigator.maybePop(context),
+      onTap: () => Navigator.pop(context),
       child: Container(
-        height: 40,
-        width: 40,
+        height: 44,
+        width: 44,
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(12),
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.05)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 10,
             ),
           ],
         ),
-        child: const Icon(Icons.chevron_left, color: Colors.white),
+        child: Icon(Icons.chevron_left_rounded, color: Theme.of(context).iconTheme.color, size: 28),
       ),
     );
   }

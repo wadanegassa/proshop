@@ -45,10 +45,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                     child: orderProvider.isLoading
                         ? const Center(child: CircularProgressIndicator())
                         : orders.isEmpty
-                            ? const Center(
+                            ? Center(
                                 child: Text(
                                   'No orders yet',
-                                  style: TextStyle(color: AppColors.textMuted),
+                                  style: TextStyle(color: Theme.of(context).hintColor),
                                 ),
                               )
                             : ListView.builder(
@@ -60,8 +60,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                     margin: const EdgeInsets.only(bottom: 16),
                                     padding: const EdgeInsets.all(16),
                                     decoration: BoxDecoration(
-                                      color: AppColors.surface,
+                                      color: Theme.of(context).cardColor,
                                       borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.05)),
                                     ),
                                     child: Column(
                                       children: [
@@ -77,13 +78,13 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                                     fontWeight: FontWeight.bold,
                                                   ),
                                                 ),
-                                                Text(
-                                                  DateFormat('MMM dd, yyyy').format(order.createdAt),
-                                                  style: const TextStyle(
-                                                    color: AppColors.textSecondary,
-                                                    fontSize: 12,
+                                                  Text(
+                                                    DateFormat('MMM dd, yyyy').format(order.createdAt),
+                                                    style: TextStyle(
+                                                      color: Theme.of(context).hintColor,
+                                                      fontSize: 12,
+                                                    ),
                                                   ),
-                                                ),
                                               ],
                                             ),
                                             Container(
@@ -103,16 +104,16 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                             ),
                                           ],
                                         ),
-                                        const Padding(
-                                          padding: EdgeInsets.symmetric(vertical: 12.0),
-                                          child: Divider(color: AppColors.textMuted, thickness: 0.5),
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 12.0),
+                                          child: Divider(color: Theme.of(context).dividerColor.withOpacity(0.1), thickness: 0.5),
                                         ),
                                         Row(
                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
                                             Text(
                                               '${order.orderItems.length} Items',
-                                              style: const TextStyle(color: AppColors.textSecondary),
+                                              style: TextStyle(color: Theme.of(context).hintColor),
                                             ),
                                             Text(
                                               '\$${order.totalPrice.toStringAsFixed(2)}',

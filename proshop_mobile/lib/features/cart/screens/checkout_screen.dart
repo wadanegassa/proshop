@@ -7,6 +7,8 @@ import '../../../providers/cart_provider.dart';
 import '../../../providers/order_provider.dart';
 import '../../../providers/settings_provider.dart';
 import '../../../routes/app_routes.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:flutter_paypal_payment/flutter_paypal_payment.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -23,7 +25,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _postalCodeController = TextEditingController();
   final _countryController = TextEditingController();
   final _phoneController = TextEditingController();
-  String _paymentMethod = 'PayPal';
+  String _paymentMethod = 'Stripe';
   bool _isLoading = false;
 
   @override
@@ -61,8 +63,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         name: i.product.name,
         qty: i.quantity,
         image: i.product.image,
-        price: i.product.price,
+        price: i.product.discountedPrice,
         product: i.product.id,
+        size: i.selectedSize,
+        color: i.selectedColor,
       )).toList(),
       shippingAddress: ShippingAddress(
         address: _addressController.text,
@@ -87,87 +91,133 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (mounted) {
       if (orderId != null) {
         if (_paymentMethod == 'PayPal') {
-          // Show PayPal Simulation Dialog
-          bool? simulatePaymentSuccess = await showDialog<bool>(
-            context: context,
-            barrierDismissible: false,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                backgroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                title: Row(
-                  children: [
-                    Icon(Icons.payment, color: Colors.blue[900]),
-                    const SizedBox(width: 10),
-                    const Flexible(
-                      child: Text('PayPal (Simulated)', 
-                        style: TextStyle(color: Colors.black),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
+          // Real PayPal Sandbox Integration in Full Screen
+          if (mounted) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (BuildContext context) => PaypalCheckoutView(
+                  sandboxMode: true,
+                  clientId: "AcMp7SH0BReY5lhCu00v0czGTOgHRPDrwPimLJA2sAnEm147Oj8pM5aHCMYkVKlHlIIQXtxdhNTB4zXV",
+                  secretKey: "EA_KT5fpqMgou6Zw88Smer5AJPXGYboncPuwEzRBMI-B0enZ9uYX2i5C0z1DwYFyzTarWIDTcfA5nyQ6",
+                  transactions: [
+                    {
+                      "amount": {
+                        "total": total.toStringAsFixed(2),
+                        "currency": "USD",
+                        "details": {
+                          "subtotal": total.toStringAsFixed(2),
+                          "shipping": '0',
+                          "shipping_discount": 0
+                        }
+                      },
+                      "description": "ProShop Order #$orderId",
+                      "item_list": {
+                        "items": [
+                          {
+                            "name": "Order Total",
+                            "quantity": 1,
+                            "price": total.toStringAsFixed(2),
+                            "currency": "USD"
+                          }
+                        ],
+                      }
+                    }
                   ],
-                ),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const LinearProgressIndicator(),
-                    const SizedBox(height: 20),
-                    Text('Connecting to PayPal...', style: TextStyle(color: Colors.grey[700])),
-                    const SizedBox(height: 10),
-                    Text('Total: \$${total.toStringAsFixed(2)}', 
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black)),
-                  ],
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(false), // User Cancel
-                    child: const Text('Cancel Request'),
-                  ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[900],
-                      foregroundColor: Colors.white,
-                    ),
-                    onPressed: () async {
-                      // Mimic processing delay
-                      // Mimic processing delay
-                      Navigator.of(context).pop(true); 
-                    },
-                    child: const Text('Approve Payment'),
-                  ),
-                ],
-              );
-            },
-          );
+                  note: "Contact us for any questions on your order.",
+                  onSuccess: (Map params) async {
+                    debugPrint("PayPal Success: $params");
+                    final paymentResult = {
+                      'id': params['paymentId'],
+                      'status': 'COMPLETED',
+                      'update_time': DateTime.now().toIso8601String(),
+                      'payer': {'email_address': params['payerID']},
+                      'method': 'PayPal',
+                    };
 
-          // Add a secondary processing delay for realism/network
-          if (simulatePaymentSuccess == true) {
-             showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (ctx) => const Center(child: CircularProgressIndicator()),
-             );
-             await Future.delayed(const Duration(seconds: 2));
-             Navigator.of(context, rootNavigator: true).pop(); // Dismiss loading
+                    final paymentError = await orderProvider.payOrder(orderId, paymentResult);
+                    if (paymentError == null && mounted) {
+                      _finishCheckout(selectedItems);
+                    } else if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(paymentError ?? 'Failed to update order status')),
+                      );
+                    }
+                  },
+                  onError: (error) {
+                    debugPrint("PayPal Error: $error");
+                    _handlePaymentFailure(orderId, 'PayPal Error: $error');
+                  },
+                  onCancel: () {
+                    debugPrint("PayPal Cancelled");
+                    _handlePaymentFailure(orderId, 'Payment cancelled');
+                  },
+                ),
+              ),
+            );
+          }
+        } else if (_paymentMethod == 'Stripe') {
+          // Stripe Payment Flow
+          debugPrint('Starting Stripe Payment Flow for total: $total');
+          
+          // 1. Fetch Publishable Key
+          final publishableKey = await orderProvider.getStripePublishableKey();
+          debugPrint('Stripe Publishable Key: $publishableKey');
+          if (publishableKey == null) {
+            await _handlePaymentFailure(orderId, 'Failed to initialize payment system.');
+            return;
+          }
+          Stripe.publishableKey = publishableKey;
+
+          // 2. Create Payment Intent
+          final clientSecret = await orderProvider.createStripePaymentIntent(total);
+          debugPrint('Stripe Client Secret (first 10 chars): ${clientSecret?.substring(0, 10)}...');
+          
+          if (clientSecret == null) {
+            await _handlePaymentFailure(orderId, 'Failed to initialize payment. Please try again.');
+            return;
           }
 
-          if (simulatePaymentSuccess == true) {
-            final mockPaymentResult = {
-              'id': 'PAYID-${DateTime.now().millisecondsSinceEpoch}',
+          try {
+            // 1. Initialize Payment Sheet
+            debugPrint('Initializing Stripe Payment Sheet...');
+            await Stripe.instance.initPaymentSheet(
+              paymentSheetParameters: SetupPaymentSheetParameters(
+                paymentIntentClientSecret: clientSecret,
+                merchantDisplayName: 'ProShop',
+                style: ThemeMode.dark,
+              ),
+            );
+
+            // 2. Display Payment Sheet
+            debugPrint('Presenting Stripe Payment Sheet...');
+            await Stripe.instance.presentPaymentSheet();
+            debugPrint('Stripe Payment Sheet closed/completed.');
+
+            // 3. Confirm Payment Success
+            final paymentResult = {
+              'id': 'STRIPEID-${DateTime.now().millisecondsSinceEpoch}',
               'status': 'COMPLETED',
               'update_time': DateTime.now().toIso8601String(),
-              'payer': {'email_address': 'customer@example.com'},
+              'payer': {'email_address': _fullNameController.text},
+              'method': 'Stripe',
             };
 
-            final paymentError = await orderProvider.payOrder(orderId, mockPaymentResult);
-            
+            final paymentError = await orderProvider.payOrder(orderId, paymentResult);
+
             if (paymentError == null && mounted) {
               _finishCheckout(selectedItems);
             } else if (mounted) {
               await _handlePaymentFailure(orderId, paymentError ?? 'Payment verification failed.');
             }
-          } else {
-            await _handlePaymentFailure(orderId, 'Payment cancelled by user.');
+          } catch (e) {
+            debugPrint('Full Stripe Error Object: $e');
+            if (e is StripeException) {
+              debugPrint('StripeException Details: ${e.error.localizedMessage} (Code: ${e.error.code})');
+              await _handlePaymentFailure(orderId, 'Payment failed: ${e.error.localizedMessage}');
+            } else {
+              debugPrint('Generic Error in Stripe Flow: $e');
+              await _handlePaymentFailure(orderId, 'Payment cancelled or failed.');
+            }
           }
         } else {
           // For other methods like COD that don't need immediate payment
@@ -198,7 +248,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     setState(() => _isLoading = false);
     final cart = context.read<CartProvider>();
     for (var item in selectedItems) {
-      cart.removeItem(item.product.id);
+      cart.removeItem(item.key);
     }
     Navigator.pushReplacementNamed(context, AppRoutes.checkoutSuccess);
   }
@@ -233,40 +283,39 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildSectionHeader('Shipping Address'),
+                        _buildSectionHeader(context, 'Shipping Address'),
                         const SizedBox(height: 16),
-                        _buildTextField('Full Name', _fullNameController),
+                        _buildTextField(context, 'Full Name', _fullNameController),
                         const SizedBox(height: 12),
-                        _buildTextField('Address', _addressController),
+                        _buildTextField(context, 'Address', _addressController),
                         const SizedBox(height: 12),
                         Row(
                           children: [
-                            Expanded(child: _buildTextField('City', _cityController)),
+                            Expanded(child: _buildTextField(context, 'City', _cityController)),
                             const SizedBox(width: 12),
-                            Expanded(child: _buildTextField('Postal Code', _postalCodeController)),
+                            Expanded(child: _buildTextField(context, 'Postal Code', _postalCodeController)),
                           ],
                         ),
                         const SizedBox(height: 12),
-                        _buildTextField('Country', _countryController),
+                        _buildTextField(context, 'Country', _countryController),
                         const SizedBox(height: 12),
-                        _buildTextField('Phone Number', _phoneController, keyboardType: TextInputType.phone),
-                        
+                        _buildTextField(context, 'Phone Number', _phoneController, keyboardType: TextInputType.phone),
                         const SizedBox(height: 32),
-                        _buildSectionHeader('Payment Method'),
+                        _buildSectionHeader(context, 'Payment Method'),
                         const SizedBox(height: 16),
-                        _buildPaymentOption('PayPal', Icons.payment),
-                        _buildPaymentOption('Stripe', Icons.credit_card),
-                        _buildPaymentOption('Cash on Delivery', Icons.money),
+
+                        _buildPaymentOption(context, 'Stripe', Icons.credit_card_outlined),
+                        _buildPaymentOption(context, 'PayPal', Icons.payment),
                         
                         const SizedBox(height: 32),
-                        _buildOrderSummary(),
+                        _buildOrderSummary(context),
                         const SizedBox(height: 40),
                       ],
                     ),
                   ),
                 ),
               ),
-              _buildBottomAction(),
+              _buildBottomAction(context),
             ],
           ),
         ),
@@ -274,63 +323,67 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(BuildContext context, String title) {
     return Text(
       title,
-      style: const TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
-      ),
+      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, {TextInputType? keyboardType}) {
+  Widget _buildTextField(BuildContext context, String label, TextEditingController controller, {TextInputType? keyboardType}) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.textMuted.withOpacity(0.2)),
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.05)),
       ),
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
-        style: const TextStyle(color: Colors.white),
+        style: Theme.of(context).textTheme.bodyLarge,
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(color: AppColors.textMuted),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          labelStyle: TextStyle(color: Theme.of(context).hintColor),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: const BorderSide(color: AppColors.primary, width: 2),
+          ),
         ),
         validator: (value) => value == null || value.isEmpty ? 'Required' : null,
       ),
     );
   }
 
-  Widget _buildPaymentOption(String method, IconData icon) {
+  Widget _buildPaymentOption(BuildContext context, String method, IconData icon) {
     final isSelected = _paymentMethod == method;
     return GestureDetector(
       onTap: () => setState(() => _paymentMethod = method),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withOpacity(0.1) : AppColors.surface,
-          borderRadius: BorderRadius.circular(12),
+          color: isSelected ? AppColors.primary.withOpacity(0.1) : Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(15),
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.textMuted.withOpacity(0.2),
+            color: isSelected ? AppColors.primary : Theme.of(context).dividerColor.withOpacity(0.05),
+            width: isSelected ? 2 : 1,
           ),
         ),
         child: Row(
           children: [
-            Icon(icon, color: isSelected ? AppColors.primary : AppColors.textMuted),
+            Icon(icon, color: isSelected ? AppColors.primary : Theme.of(context).hintColor, size: 28),
             const SizedBox(width: 16),
             Text(
               method,
-              style: TextStyle(
-                color: isSelected ? Colors.white : AppColors.textSecondary,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: isSelected ? AppColors.primary : Theme.of(context).textTheme.bodyLarge?.color,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
             ),
             const Spacer(),
             if (isSelected)
@@ -341,7 +394,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildOrderSummary() {
+  Widget _buildOrderSummary(BuildContext context) {
     final cart = context.watch<CartProvider>();
     final settings = context.watch<SettingsProvider>();
     
@@ -352,54 +405,90 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final total = subtotal + shippingFee + tax - discount;
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.05)),
       ),
       child: Column(
         children: [
-          _buildRow('Subtotal', '\$${subtotal.toStringAsFixed(2)}'),
-          const SizedBox(height: 8),
-          _buildRow('Tax (${(settings.taxRate * 100).toStringAsFixed(0)}%)', '\$${tax.toStringAsFixed(2)}'),
-          const SizedBox(height: 8),
-          _buildRow('Shipping', '\$${shippingFee.toStringAsFixed(2)}'),
+          _buildRow(context, 'Subtotal', '\$${subtotal.toStringAsFixed(2)}'),
+          const SizedBox(height: 12),
+          _buildRow(context, 'Tax (${(settings.taxRate * 100).toStringAsFixed(0)}%)', '\$${tax.toStringAsFixed(2)}'),
+          const SizedBox(height: 12),
+          _buildRow(context, 'Shipping', '\$${shippingFee.toStringAsFixed(2)}'),
           if (discount > 0) ...[
-            const SizedBox(height: 8),
-            _buildRow('Discount', '-\$${discount.toStringAsFixed(2)}', isDiscount: true),
+            const SizedBox(height: 12),
+            _buildRow(context, 'Discount', '-\$${discount.toStringAsFixed(2)}', isDiscount: true),
           ],
-          const Divider(height: 24, color: AppColors.textMuted),
-          _buildRow('Total', '\$${total.toStringAsFixed(2)}', isTotal: true),
+          Divider(height: 32, color: Theme.of(context).dividerColor.withOpacity(0.1)),
+          _buildRow(context, 'Total', '\$${total.toStringAsFixed(2)}', isTotal: true),
         ],
       ),
     );
   }
 
-  Widget _buildRow(String label, String value, {bool isTotal = false, bool isDiscount = false}) {
+  Widget _buildRow(BuildContext context, String label, String value, {bool isTotal = false, bool isDiscount = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(color: isTotal ? Colors.white : AppColors.textSecondary)),
+        Text(label, style: TextStyle(
+          color: isTotal ? Theme.of(context).textTheme.bodyLarge?.color : Theme.of(context).hintColor,
+          fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+        )),
         Text(
           value,
           style: TextStyle(
-            color: isTotal ? AppColors.primary : (isDiscount ? AppColors.success : Colors.white),
+            color: isTotal ? AppColors.primary : (isDiscount ? AppColors.success : Theme.of(context).textTheme.bodyLarge?.color),
             fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
-            fontSize: isTotal ? 18 : 14,
+            fontSize: isTotal ? 20 : 15,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildBottomAction() {
+  Widget _buildCardTextField(String label, TextEditingController controller, String hint, {TextInputType? keyboardType, bool obscureText = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: TextStyle(color: Theme.of(context).hintColor, fontSize: 13, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.2)),
+          ),
+          child: TextFormField(
+            controller: controller,
+            keyboardType: keyboardType,
+            obscureText: obscureText,
+            style: const TextStyle(color: Colors.white, fontSize: 15),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(color: Theme.of(context).hintColor, fontSize: 14),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              border: InputBorder.none,
+            ),
+            validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+          ),
+        ),
+      ],
+    );
+  }
+
+
+  Widget _buildBottomAction(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: Theme.of(context).cardColor,
+        border: Border(top: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.05))),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -430,10 +519,17 @@ class BackButtonCircle extends StatelessWidget {
         height: 40,
         width: 40,
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(12),
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.05)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+            ),
+          ],
         ),
-        child: const Icon(Icons.chevron_left, color: Colors.white),
+        child: Icon(Icons.chevron_left_rounded, color: Theme.of(context).iconTheme.color, size: 28),
       ),
     );
   }

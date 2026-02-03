@@ -56,18 +56,21 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: GestureDetector(
                                 onTap: () => Navigator.pushNamed(context, AppRoutes.search),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                                   decoration: BoxDecoration(
-                                    color: AppColors.surface.withAlpha(200),
-                                    borderRadius: BorderRadius.circular(15),
+                                    color: Theme.of(context).cardColor.withOpacity(0.8),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: Theme.of(context).dividerColor.withOpacity(0.05),
+                                    ),
                                   ),
-                                  child: const Row(
+                                  child: Row(
                                     children: [
-                                      Icon(Icons.search, color: AppColors.textMuted),
-                                      SizedBox(width: 12),
+                                      Icon(Icons.search, color: Theme.of(context).hintColor),
+                                      const SizedBox(width: 12),
                                       Text(
                                         'Search Products...',
-                                        style: TextStyle(color: AppColors.textMuted),
+                                        style: TextStyle(color: Theme.of(context).hintColor),
                                       ),
                                     ],
                                   ),
@@ -83,12 +86,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                     clipBehavior: Clip.none,
                                     children: [
                                       Container(
-                                        padding: const EdgeInsets.all(12),
+                                        padding: const EdgeInsets.all(14),
                                         decoration: BoxDecoration(
-                                          color: AppColors.primary,
-                                          borderRadius: BorderRadius.circular(15),
+                                          gradient: AppColors.primaryGradient,
+                                          borderRadius: BorderRadius.circular(20),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: AppColors.primary.withOpacity(0.3),
+                                              blurRadius: 12,
+                                              offset: const Offset(0, 6),
+                                            ),
+                                          ],
                                         ),
-                                        child: const Icon(Icons.notifications, color: Colors.white),
+                                        child: const Icon(Icons.notifications_outlined, color: Colors.white),
                                       ),
                                       if (notificationProvider.unreadCount > 0)
                                         Positioned(
@@ -129,14 +139,15 @@ class _HomeScreenState extends State<HomeScreen> {
                      SliverToBoxAdapter(
                        child: Padding(
                          padding: const EdgeInsets.symmetric(vertical: 20),
-                         child: HomeBannerCarousel(products: products),
+                         child: HomeBannerCarousel(products: productProvider.allProducts),
                        ),
                      ),
 
-                     // Categories
+                     // Ultra-Minimal Categories
                      SliverToBoxAdapter(
-                       child: SizedBox(
-                         height: 100,
+                       child: Container(
+                         height: 36,
+                         margin: const EdgeInsets.only(bottom: 24),
                          child: ListView.builder(
                            padding: const EdgeInsets.symmetric(horizontal: 24),
                            scrollDirection: Axis.horizontal,
@@ -146,28 +157,42 @@ class _HomeScreenState extends State<HomeScreen> {
                              final isSelected = productProvider.selectedCategory == category;
                              return GestureDetector(
                                onTap: () => productProvider.setCategory(category),
-                               child: Container(
-                                 margin: const EdgeInsets.only(right: 16, bottom: 40),
-                                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                                 decoration: BoxDecoration(
-                                   color: isSelected ? AppColors.primary : AppColors.surface,
-                                   borderRadius: BorderRadius.circular(15),
-                                   boxShadow: isSelected
-                                       ? [
-                                           BoxShadow(
-                                             color: AppColors.primary.withOpacity(0.3),
-                                             blurRadius: 10,
-                                             offset: const Offset(0, 5),
-                                           )
-                                         ]
-                                       : [],
-                                 ),
-                                 alignment: Alignment.center,
-                                 child: Text(
-                                   category,
-                                   style: TextStyle(
-                                     color: isSelected ? Colors.white : AppColors.textMuted,
-                                     fontWeight: FontWeight.bold,
+                               child: AnimatedScale(
+                                 scale: isSelected ? 1.05 : 1.0,
+                                 duration: const Duration(milliseconds: 200),
+                                 child: AnimatedContainer(
+                                   duration: const Duration(milliseconds: 300),
+                                   margin: const EdgeInsets.only(right: 8),
+                                   padding: const EdgeInsets.symmetric(horizontal: 16),
+                                   decoration: BoxDecoration(
+                                     gradient: isSelected ? AppColors.primaryGradient : null,
+                                     color: isSelected ? null : Theme.of(context).cardColor.withOpacity(0.3),
+                                     borderRadius: BorderRadius.circular(12),
+                                     border: Border.all(
+                                       color: isSelected 
+                                           ? Colors.transparent 
+                                           : Theme.of(context).dividerColor.withOpacity(0.03),
+                                     ),
+                                     boxShadow: isSelected
+                                         ? [
+                                             BoxShadow(
+                                               color: AppColors.primary.withOpacity(0.2),
+                                               blurRadius: 6,
+                                               offset: const Offset(0, 3),
+                                             )
+                                           ]
+                                         : [],
+                                   ),
+                                   alignment: Alignment.center,
+                                   child: Text(
+                                     category,
+                                     style: TextStyle(
+                                       color: isSelected 
+                                           ? Colors.white 
+                                           : Theme.of(context).hintColor.withOpacity(0.7),
+                                       fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                                       fontSize: 12,
+                                     ),
                                    ),
                                  ),
                                ),
@@ -194,7 +219,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             crossAxisCount: 2,
                             mainAxisSpacing: 20,
                             crossAxisSpacing: 20,
-                            childAspectRatio: 0.6,
+                            childAspectRatio: 0.52,
                           ),
                           delegate: SliverChildBuilderDelegate(
                             (context, index) {

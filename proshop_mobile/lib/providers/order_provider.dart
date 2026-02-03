@@ -110,6 +110,50 @@ class OrderProvider with ChangeNotifier {
     }
   }
 
+  Future<String?> getStripePublishableKey() async {
+    try {
+      final token = await _storage.read(key: 'token');
+      final response = await http.get(
+        Uri.parse(ApiConstants.stripeConfig),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        return responseData['data'];
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching Stripe config: $e');
+      return null;
+    }
+  }
+
+  Future<String?> createStripePaymentIntent(double amount) async {
+    try {
+      final token = await _storage.read(key: 'token');
+      final response = await http.post(
+        Uri.parse(ApiConstants.stripePaymentIntent),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode({'amount': amount}),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        return responseData['clientSecret'];
+      }
+      debugPrint('Stripe Payment Intent Failed: ${response.statusCode}');
+      debugPrint('Response Body: ${response.body}');
+      return null;
+    } catch (e) {
+      debugPrint('Error creating Stripe Payment Intent: $e');
+      return null;
+    }
+  }
+
   Future<bool> deleteOrder(String orderId) async {
     try {
       final token = await _storage.read(key: 'token');

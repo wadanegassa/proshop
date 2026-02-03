@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/design_background.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/cart_provider.dart';
 import '../../../routes/app_routes.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -31,6 +32,9 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() => _isLoading = false);
 
       if (success) {
+        if (mounted) {
+           await Provider.of<CartProvider>(context, listen: false).fetchCart();
+        }
         Navigator.pushReplacementNamed(context, AppRoutes.initial);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -58,9 +62,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: Theme.of(context).textTheme.headlineLarge,
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'Login to your account to continue',
-                      style: TextStyle(color: AppColors.textSecondary),
+                      style: TextStyle(color: Theme.of(context).hintColor),
                     ),
                     const SizedBox(height: 48),
                     TextFormField(
@@ -102,8 +106,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('Don\'t have an account?',
-                            style: TextStyle(color: AppColors.textSecondary)),
+                        Text('Don\'t have an account?',
+                            style: TextStyle(color: Theme.of(context).hintColor)),
                         TextButton(
                           onPressed: () =>
                               Navigator.pushNamed(context, AppRoutes.register),

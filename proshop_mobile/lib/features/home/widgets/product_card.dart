@@ -21,98 +21,153 @@ class ProductCard extends StatelessWidget {
           arguments: product,
         );
       },
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(25),
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: Theme.of(context).dividerColor.withOpacity(0.05),
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
             ),
           ],
         ),
-        child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Favorite Icon
-                  Consumer<WishlistProvider>(
-                    builder: (context, wishlistProvider, _) {
-                      // Note: We need to convert ProductModel to Product (or they should be the same)
-                      // Assuming ProductModel is used everywhere now. But WishlistProvider uses Product.
-                      // I need to check models/product_model.dart to ensure compatibility or cast.
-                      // Wait, ProductModel probably IS Product class or alias. Let's assume ProductModel = Product for now.
-                      // Actually, let's use the ID for check and pass the model for add.
-                      final isFavorite = wishlistProvider.isInWishlist(product.id);
-                      
-                      return Align(
-                        alignment: Alignment.topRight,
-                        child: GestureDetector(
-                          onTap: () {
-                             // Conversion logic if needed. Assuming ProductModel logic is compatible
-                             // or I need to update WishlistProvider to use ProductModel.
-                             // Let's implement toggle with ID if possible or pass object.
-                             // Provider expects Product objects.
-                             // Let's assume ProductModel is the class name in use effectively.
-                             wishlistProvider.toggleWishlist(product);
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Top Row: Favorite button
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Consumer<WishlistProvider>(
+                          builder: (context, wishlistProvider, _) {
+                            final isFavorite = wishlistProvider.isInWishlist(product.id);
+                            return GestureDetector(
+                              onTap: () => wishlistProvider.toggleWishlist(product),
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.5),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  isFavorite ? Icons.favorite : Icons.favorite_border,
+                                  color: isFavorite ? Colors.red : Theme.of(context).hintColor,
+                                  size: 18,
+                                ),
+                              ),
+                            );
                           },
-                          child: Icon(
-                            isFavorite ? Icons.favorite : Icons.favorite_border,
-                            color: isFavorite ? Colors.red : AppColors.textSecondary,
-                            size: 20,
-                          ),
                         ),
-                      );
-                    },
-                  ),
-                  Expanded(
-                    child: Center(
-                      child: Hero(
-                        tag: 'product-${product.id}',
-                        child: ProductImage(
-                          imagePath: product.image,
-                          fit: BoxFit.contain,
+                      ],
+                    ),
+                    Expanded(
+                      child: Center(
+                        child: Hero(
+                          tag: 'product-${product.id}',
+                          child: ProductImage(
+                            imagePath: product.image,
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  // Product Category
-                  Text(
-                    product.category,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
+                    const SizedBox(height: 12),
+                    // Product Category with Badge Style
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        product.category.toUpperCase(),
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  // Product Name
-                  Text(
-                    product.name,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                    const SizedBox(height: 8),
+                    // Product Name
+                    Text(
+                      product.name,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14, // Slightly smaller for better fit
+                      ),
+                      maxLines: 2, // Allow 2 lines for name
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-                  // Price
-                  Text(
-                    '\$${product.price}',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w600,
+                    const SizedBox(height: 6),
+                    // Price Row
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        children: [
+                          Text(
+                            '\$${product.discountedPrice.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          if (product.discount > 0) ...[
+                            const SizedBox(width: 6),
+                            Text(
+                              '\$${product.price.toStringAsFixed(2)}',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).hintColor,
+                                decoration: TextDecoration.lineThrough,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+              // Optional: Discount Badge
+              if (product.discount > 0)
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: const BoxDecoration(
+                      gradient: AppColors.primaryGradient,
+                      borderRadius: BorderRadius.only(
+                        bottomRight: Radius.circular(16),
+                      ),
+                    ),
+                    child: Text(
+                      '-${product.discount.toInt()}%',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'core/theme/app_theme.dart';
 import 'routes/app_routes.dart';
 import 'providers/auth_provider.dart';
@@ -10,7 +11,11 @@ import 'providers/notification_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/wishlist_provider.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Stripe is initialized dynamically in CheckoutScreen
+  
   runApp(
     MultiProvider(
       providers: [
@@ -32,12 +37,18 @@ class ProShopApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'ProShop',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
-      initialRoute: AppRoutes.initial,
-      routes: AppRoutes.routes,
+    return Consumer<SettingsProvider>(
+      builder: (context, settings, child) {
+        return MaterialApp(
+          title: 'ProShop',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: settings.themeMode,
+          initialRoute: AppRoutes.initial,
+          routes: AppRoutes.routes,
+        );
+      },
     );
   }
 }

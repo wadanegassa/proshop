@@ -79,32 +79,31 @@ class _WishlistScreenState extends State<WishlistScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: Container(
-              padding: const EdgeInsets.all(8),
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              height: 44,
+              width: 44,
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.05)),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.05),
                     blurRadius: 10,
-                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
-              child: const Icon(Icons.arrow_back, color: Colors.black, size: 20),
+              child: Icon(Icons.chevron_left_rounded, color: Theme.of(context).iconTheme.color, size: 28),
             ),
           ),
           const SizedBox(width: 16),
-          const Text(
+          Text(
             'My Wishlist',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
           ),
         ],
       ),
@@ -117,24 +116,22 @@ class _WishlistScreenState extends State<WishlistScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.favorite_border,
+            Icons.favorite_rounded,
             size: 80,
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.primary.withOpacity(0.1),
           ),
-          const SizedBox(height: 16),
-          const Text(
+          const SizedBox(height: 24),
+          Text(
             'Your wishlist is empty',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textSecondary,
-            ),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Tap the heart icon on products to see them here',
             style: TextStyle(
-              color: AppColors.textMuted,
+              color: Theme.of(context).hintColor,
             ),
           ),
         ],

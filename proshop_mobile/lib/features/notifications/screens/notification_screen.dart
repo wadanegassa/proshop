@@ -41,12 +41,19 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
                       child: Container(
-                        height: 40, width: 40,
+                        height: 44, width: 44,
                         decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(12),
+                          color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.05)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                            ),
+                          ],
                         ),
-                        child: const Icon(Icons.chevron_left, color: Colors.white),
+                        child: Icon(Icons.chevron_left_rounded, color: Theme.of(context).iconTheme.color, size: 28),
                       ),
                     ),
                     Text(
@@ -83,12 +90,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.notifications_off_outlined, 
-                                size: 80, color: AppColors.textMuted.withOpacity(0.5)),
+                              Icon(Icons.notifications_off_rounded, 
+                                size: 80, color: AppColors.primary.withOpacity(0.1)),
                               const SizedBox(height: 16),
-                              const Text(
+                              Text(
                                 'No notifications yet',
-                                style: TextStyle(color: AppColors.textMuted, fontSize: 18),
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  color: Theme.of(context).hintColor,
+                                ),
                               ),
                             ],
                           ),
@@ -144,12 +153,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: notification.read 
-                ? AppColors.surface.withOpacity(0.6) 
-                : AppColors.surface,
-            borderRadius: BorderRadius.circular(15),
-            border: !notification.read 
-                ? Border.all(color: AppColors.primary, width: 1.5)
-                : null,
+                ? Theme.of(context).cardColor.withOpacity(0.6) 
+                : Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: !notification.read ? AppColors.primary : Theme.of(context).dividerColor.withOpacity(0.05),
+              width: !notification.read ? 1.5 : 1,
+            ),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,18 +187,15 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         Expanded(
                           child: Text(
                             notification.title,
-                            style: TextStyle(
-                              color: Colors.white,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: notification.read ? FontWeight.normal : FontWeight.bold,
-                              fontSize: 16,
                             ),
                           ),
                         ),
                         Text(
                           _formatDate(notification.createdAt),
-                          style: const TextStyle(
-                            color: AppColors.textMuted,
-                            fontSize: 12,
+                          style: TextStyle(
+                            color: Theme.of(context).hintColor,
                           ),
                         ),
                       ],
@@ -196,7 +203,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     const SizedBox(height: 8),
                     Text(
                       notification.message,
-                      style: const TextStyle(color: AppColors.textSecondary),
+                      style: TextStyle(color: Theme.of(context).hintColor, fontSize: 14),
                     ),
                   ],
                 ),

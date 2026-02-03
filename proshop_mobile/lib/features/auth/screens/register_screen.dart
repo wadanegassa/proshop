@@ -4,6 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/design_background.dart';
 import '../../../routes/app_routes.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/cart_provider.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -34,6 +35,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       setState(() => _isLoading = false);
 
       if (success) {
+        if (mounted) {
+          await Provider.of<CartProvider>(context, listen: false).fetchCart();
+        }
         Navigator.pushReplacementNamed(context, AppRoutes.initial);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -61,9 +65,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       style: Theme.of(context).textTheme.headlineLarge,
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'Join ProShop and start shopping',
-                      style: TextStyle(color: AppColors.textSecondary),
+                      style: TextStyle(color: Theme.of(context).hintColor),
                     ),
                     const SizedBox(height: 48),
                     TextFormField(
@@ -107,8 +111,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('Already have an account?',
-                            style: TextStyle(color: AppColors.textSecondary)),
+                        Text('Already have an account?',
+                            style: TextStyle(color: Theme.of(context).hintColor)),
                         TextButton(
                           onPressed: () =>
                               Navigator.pushReplacementNamed(context, AppRoutes.login),

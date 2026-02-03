@@ -37,7 +37,7 @@ class ProductStackedBanner extends StatelessWidget {
           width: 300,
           height: 180,
           decoration: BoxDecoration(
-            color: AppColors.surface.withOpacity(0.5 - (index * 0.1)),
+            color: Theme.of(context).cardColor.withOpacity(0.5 - (index * 0.1)),
             borderRadius: BorderRadius.circular(30),
             boxShadow: [
               BoxShadow(
@@ -56,7 +56,7 @@ class ProductStackedBanner extends StatelessWidget {
       width: 300,
       height: 180,
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(

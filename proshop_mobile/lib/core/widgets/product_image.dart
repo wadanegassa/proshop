@@ -19,7 +19,7 @@ class ProductImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (imagePath.isEmpty) {
-      return Icon(Icons.image, size: height ?? 50, color: AppColors.textMuted);
+      return Icon(Icons.image, size: height ?? 50, color: Theme.of(context).hintColor);
     }
 
     if (imagePath.startsWith('http')) {
@@ -29,7 +29,7 @@ class ProductImage extends StatelessWidget {
         width: width,
         fit: fit,
         errorBuilder: (context, error, stackTrace) =>
-            Icon(Icons.image, size: height ?? 50, color: AppColors.textMuted),
+            Icon(Icons.image, size: height ?? 50, color: Theme.of(context).hintColor),
       );
     }
     
@@ -51,7 +51,7 @@ class ProductImage extends StatelessWidget {
         width: width,
         fit: fit,
         errorBuilder: (context, error, stackTrace) =>
-            Icon(Icons.image, size: height ?? 50, color: AppColors.textMuted),
+            Icon(Icons.image, size: height ?? 50, color: Theme.of(context).hintColor),
       );
     }
 
@@ -61,7 +61,7 @@ class ProductImage extends StatelessWidget {
       width: width,
       fit: fit,
       errorBuilder: (context, error, stackTrace) =>
-          Icon(Icons.image, size: height ?? 50, color: AppColors.textMuted),
+          Icon(Icons.image, size: height ?? 50, color: Theme.of(context).hintColor),
     );
   }
 }

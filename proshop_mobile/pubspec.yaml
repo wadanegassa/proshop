@@ -36,9 +36,12 @@ dependencies:
   flutter_svg: ^2.0.10+1
   intl: ^0.19.0
   http: ^1.2.1
+  flutter_stripe: ^11.4.0
+  flutter_paypal_payment: ^1.0.8
 
   cupertino_icons: ^1.0.8
   flutter_secure_storage: ^10.0.0
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:

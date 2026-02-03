@@ -4,6 +4,7 @@
         android:label="ProShop"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon"
+        android:theme="@style/NormalTheme"
         android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"

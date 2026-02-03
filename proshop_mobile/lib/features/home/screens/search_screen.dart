@@ -29,24 +29,25 @@ class _SearchScreenState extends State<SearchScreen> {
                 child: Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      icon: Icon(Icons.arrow_back_rounded, color: Theme.of(context).iconTheme.color),
                       onPressed: () => Navigator.pop(context),
                     ),
                     Expanded(
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
-                          color: AppColors.surface,
+                          color: Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(15),
+                          border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.05)),
                         ),
                         child: TextField(
                           controller: _searchController,
                           autofocus: true,
-                          style: const TextStyle(color: Colors.white),
-                          decoration: const InputDecoration(
+                          style: Theme.of(context).textTheme.bodyLarge,
+                          decoration: InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Search products...',
-                            hintStyle: TextStyle(color: AppColors.textMuted),
+                            hintStyle: TextStyle(color: Theme.of(context).hintColor),
                           ),
                           onChanged: (value) {
                             setState(() {
@@ -70,19 +71,19 @@ class _SearchScreenState extends State<SearchScreen> {
                     ).toList();
 
                     if (_query.isEmpty) {
-                      return const Center(
+                      return Center(
                         child: Text(
                           'Type something to start searching',
-                          style: TextStyle(color: AppColors.textMuted),
+                          style: TextStyle(color: Theme.of(context).hintColor),
                         ),
                       );
                     }
 
                     if (results.isEmpty) {
-                      return const Center(
+                      return Center(
                         child: Text(
                           'No products found',
-                          style: TextStyle(color: AppColors.textMuted),
+                          style: TextStyle(color: Theme.of(context).hintColor),
                         ),
                       );
                     }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/widgets/design_background.dart';
 import '../../../routes/app_routes.dart';
 
 class CheckoutSuccessScreen extends StatelessWidget {
@@ -8,10 +9,7 @@ class CheckoutSuccessScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.bgGradient,
-        ),
+      body: DesignBackground(
         child: Center(
           child: SingleChildScrollView(
             child: Padding(
@@ -39,10 +37,10 @@ class CheckoutSuccessScreen extends StatelessWidget {
                         ),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Your order has been placed successfully. We will notify you once it is dispatched.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: AppColors.textSecondary),
+                    style: TextStyle(color: Theme.of(context).hintColor),
                   ),
                   const SizedBox(height: 48),
                   ElevatedButton(

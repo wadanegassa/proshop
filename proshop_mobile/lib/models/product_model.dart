@@ -19,6 +19,12 @@ class ProductModel {
   final String gender;
   final List<String> sizes;
   final List<String> colors;
+  final List<String> shoeSizes;
+  final List<String> highlights;
+  final List<Map<String, String>> specifications;
+  final List<Review> reviews;
+
+  double get discountedPrice => discount > 0 ? price * (1 - discount / 100) : price;
 
   ProductModel({
     required this.id,
@@ -40,6 +46,10 @@ class ProductModel {
     this.gender = 'N/A',
     this.sizes = const [],
     this.colors = const [],
+    this.shoeSizes = const [],
+    this.highlights = const [],
+    this.specifications = const [],
+    this.reviews = const [],
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
@@ -74,6 +84,17 @@ class ProductModel {
       gender: json['gender'] ?? 'N/A',
       sizes: List<String>.from(json['sizes'] ?? []),
       colors: List<String>.from(json['colors'] ?? []),
+      shoeSizes: List<String>.from(json['shoeSizes'] ?? []),
+      highlights: List<String>.from(json['highlights'] ?? []),
+      specifications: (json['specifications'] as List? ?? [])
+          .map((spec) => {
+                'label': (spec['label'] ?? '').toString(),
+                'value': (spec['value'] ?? '').toString(),
+              })
+          .toList(),
+      reviews: (json['reviews'] as List? ?? [])
+          .map((rev) => Review.fromJson(rev))
+          .toList(),
     );
   }
 
@@ -97,6 +118,50 @@ class ProductModel {
       'gender': gender,
       'sizes': sizes,
       'colors': colors,
+      'shoeSizes': shoeSizes,
+      'highlights': highlights,
+      'specifications': specifications,
+      'reviews': reviews.map((r) => r.toJson()).toList(),
+    };
+  }
+}
+
+class Review {
+  final String id;
+  final String user;
+  final String name;
+  final double rating;
+  final String comment;
+  final DateTime createdAt;
+
+  Review({
+    required this.id,
+    required this.user,
+    required this.name,
+    required this.rating,
+    required this.comment,
+    required this.createdAt,
+  });
+
+  factory Review.fromJson(Map<String, dynamic> json) {
+    return Review(
+      id: json['_id'] ?? '',
+      user: json['user'] is Map ? json['user']['_id'] : (json['user'] ?? ''),
+      name: json['name'] ?? '',
+      rating: (json['rating'] ?? 0.0).toDouble(),
+      comment: json['comment'] ?? '',
+      createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '_id': id,
+      'user': user,
+      'name': name,
+      'rating': rating,
+      'comment': comment,
+      'createdAt': createdAt.toIso8601String(),
     };
   }
 }

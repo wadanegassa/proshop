@@ -7,16 +7,20 @@ class DesignBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Stack(
       children: [
-        // Base dark background
+        // Base background with gradient
         Container(
-          color: AppColors.background,
+          decoration: BoxDecoration(
+            gradient: isDark ? AppColors.darkBgGradient : AppColors.lightBgGradient,
+          ),
         ),
-        // The blue diagonal "swoosh"
+        // The diagonal "cool" accent
         Positioned.fill(
           child: CustomPaint(
-            painter: _BackgroundPainter(),
+            painter: _BackgroundPainter(isDark: isDark),
           ),
         ),
         child,
@@ -26,6 +30,10 @@ class DesignBackground extends StatelessWidget {
 }
 
 class _BackgroundPainter extends CustomPainter {
+  final bool isDark;
+
+  _BackgroundPainter({required this.isDark});
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
@@ -42,9 +50,9 @@ class _BackgroundPainter extends CustomPainter {
 
     canvas.drawPath(path, paint);
     
-    // Add another subtle shape at the bottom left if needed
+    // Add another subtle shape at the bottom left
     final paintOverlay = Paint()
-      ..color = AppColors.primary.withOpacity(0.1);
+      ..color = AppColors.primary.withOpacity(isDark ? 0.1 : 0.05);
     
     final path2 = Path();
     path2.moveTo(0, size.height * 0.8);
@@ -56,5 +64,6 @@ class _BackgroundPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _BackgroundPainter oldDelegate) => 
+      oldDelegate.isDark != isDark;
 }
