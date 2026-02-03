@@ -22,10 +22,8 @@ exports.adminGetAllNotifications = catchAsync(async (req, res, next) => {
 });
 
 exports.markAsRead = catchAsync(async (req, res, next) => {
-    await Notification.findOneAndUpdate(
-        { _id: req.params.id, user: req.user._id },
-        { read: true }
-    );
+    const filter = req.user.role === 'admin' ? { _id: req.params.id } : { _id: req.params.id, user: req.user._id };
+    await Notification.findOneAndUpdate(filter, { read: true });
     res.status(200).json({ success: true });
 });
 
@@ -35,12 +33,14 @@ exports.markAllAsRead = catchAsync(async (req, res, next) => {
 });
 
 exports.clearAll = catchAsync(async (req, res, next) => {
-    await Notification.deleteMany({ user: req.user._id });
+    const filter = req.user.role === 'admin' ? {} : { user: req.user._id };
+    await Notification.deleteMany(filter);
     res.status(200).json({ success: true });
 });
 
 exports.deleteNotification = catchAsync(async (req, res, next) => {
-    await Notification.findOneAndDelete({ _id: req.params.id, user: req.user._id });
+    const filter = req.user.role === 'admin' ? { _id: req.params.id } : { _id: req.params.id, user: req.user._id };
+    await Notification.findOneAndDelete(filter);
     res.status(200).json({ success: true });
 });
 
@@ -50,10 +50,11 @@ exports.deleteSelected = catchAsync(async (req, res, next) => {
         return next(new AppError('Please provide an array of notification IDs', 400));
     }
 
-    await Notification.deleteMany({
-        _id: { $in: ids },
-        user: req.user._id
-    });
+    const filter = req.user.role === 'admin'
+        ? { _id: { $in: ids } }
+        : { _id: { $in: ids }, user: req.user._id };
+
+    await Notification.deleteMany(filter);
 
     res.status(200).json({
         success: true,

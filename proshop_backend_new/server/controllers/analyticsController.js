@@ -47,10 +47,10 @@ exports.getAnalyticsData = catchAsync(async (req, res, next) => {
         groupFormat = '%Y-%m';
     }
 
-    // Sessions by Country
-    const sessionsByCountry = await Order.aggregate([
-        { $group: { _id: '$shippingAddress.country', count: { $sum: 1 } } },
-        { $project: { country: '$_id', sessions: '$count', _id: 0 } },
+    // Sessions by City
+    const sessionsByCity = await Order.aggregate([
+        { $group: { _id: '$shippingAddress.city', count: { $sum: 1 } } },
+        { $project: { city: '$_id', sessions: '$count', _id: 0 } },
         { $sort: { sessions: -1 } }
     ]);
 
@@ -60,7 +60,6 @@ exports.getAnalyticsData = catchAsync(async (req, res, next) => {
         {
             $group: {
                 _id: { $dateToString: { format: groupFormat, date: '$createdAt' } },
-                totalSales: { $sum: '$totalPrice' },
                 totalSales: { $sum: '$totalPrice' },
                 orderCount: { $sum: 1 }
             }
@@ -107,7 +106,31 @@ exports.getAnalyticsData = catchAsync(async (req, res, next) => {
             }
         },
         { $sort: { salesCount: -1 } },
-        { $limit: 6 }
+        { $limit: 6 },
+        {
+            $lookup: {
+                from: 'products',
+                localField: '_id',
+                foreignField: '_id',
+                as: 'productDetails'
+            }
+        },
+        {
+            $unwind: {
+                path: '$productDetails',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $project: {
+                _id: 1,
+                name: 1,
+                salesCount: 1,
+                revenue: 1,
+                rating: { $ifNull: ['$productDetails.rating', 0] },
+                numReviews: { $ifNull: ['$productDetails.numReviews', 0] }
+            }
+        }
     ]);
 
     // If no orders yet, fall back to showing products with mock sales
@@ -116,7 +139,7 @@ exports.getAnalyticsData = catchAsync(async (req, res, next) => {
     // Fallback: If no top sellers (no orders), show "Recent Products" with 0 sales
     if (topProductsData.length === 0) {
         const recentProducts = await Product.find({})
-            .select('name price')
+            .select('name price rating numReviews')
             .sort('-createdAt')
             .limit(5);
 
@@ -124,7 +147,9 @@ exports.getAnalyticsData = catchAsync(async (req, res, next) => {
             _id: p._id,
             name: p.name,
             salesCount: 0,
-            revenue: 0
+            revenue: 0,
+            rating: p.rating || 0,
+            numReviews: p.numReviews || 0
         }));
     }
 
@@ -164,7 +189,7 @@ exports.getAnalyticsData = catchAsync(async (req, res, next) => {
             newCustomersPercent: newCustomersPercent || "0.0",
             totalUniqueCustomers: totalUniqueCustomers || 0,
             totalUsers: totalUsers || 0,
-            sessionsByCountry: sessionsByCountry || [],
+            sessionsByCity: sessionsByCity || [],
             topProducts: finalTopProducts || [],
             recentOrders: recentOrders || [],
             ordersByStatus: ordersByStatus || []
