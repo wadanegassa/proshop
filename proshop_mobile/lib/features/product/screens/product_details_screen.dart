@@ -78,20 +78,24 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.only(top: 80, bottom: 40),
-                          child: PageView.builder(
-                            itemCount: product.images.length > 0 ? product.images.length : 1,
-                            itemBuilder: (context, index) {
-                              final imagePath = product.images.isNotEmpty 
-                                  ? product.images[index] 
-                                  : product.image;
-                              return Hero(
-                                tag: 'product-${product.id}-$index',
-                                child: ProductImage(
-                                  imagePath: imagePath,
-                                  fit: BoxFit.contain,
-                                ),
-                              );
-                            },
+                          child: RepaintBoundary(
+                            child: PageView.builder(
+                              itemCount: product.images.length > 0 ? product.images.length : 1,
+                              itemBuilder: (context, index) {
+                                final imagePath = product.images.isNotEmpty 
+                                    ? product.images[index] 
+                                    : product.image;
+                                return Hero(
+                                  tag: 'product-${product.id}-$index',
+                                  child: ProductImage(
+                                    imagePath: imagePath,
+                                    fit: BoxFit.contain,
+                                    cacheWidth: 800,
+                                    cacheHeight: 800,
+                                  ),
+                                );
+                              },
+                            ),
                           ),
                         ),
                         if (product.images.length > 1)
