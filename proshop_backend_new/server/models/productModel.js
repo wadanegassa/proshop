@@ -38,6 +38,7 @@ const productSchema = new mongoose.Schema({
     gender: { type: String, enum: ['Men', 'Women', 'Kids', 'Unisex', 'N/A'], default: 'N/A' },
     sizes: { type: [String], default: [] },
     colors: { type: [String], default: [] },
+    shoeSizes: { type: [String], default: [] },
     specifications: [
         {
             label: { type: String, required: true },
