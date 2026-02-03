@@ -15,8 +15,8 @@ exports.getAnalyticsData = catchAsync(async (req, res, next) => {
     const totalOrders = (await Order.countDocuments()) || 0;
 
     // Real Metrics
-    const totalUsers = (await User.countDocuments()) || 1; // Avoid division by zero
-    const newLeads = totalUsers;
+    const totalUsers = await User.countDocuments(); // Raw count of all registered users
+    const newLeads = totalUsers; // For now consider all users as leads if we track that way
 
     const dealsCount = await Order.countDocuments({ $or: [{ isPaid: true }, { isDelivered: true }] });
     const deals = dealsCount;
@@ -61,8 +61,8 @@ exports.getAnalyticsData = catchAsync(async (req, res, next) => {
             $group: {
                 _id: { $dateToString: { format: groupFormat, date: '$createdAt' } },
                 totalSales: { $sum: '$totalPrice' },
-                clicks: { $sum: { $add: [{ $multiply: [{ $rand: {} }, 100] }, 50] } },
-                pageViews: { $sum: { $add: [{ $multiply: [{ $rand: {} }, 500] }, 200] } }
+                totalSales: { $sum: '$totalPrice' },
+                orderCount: { $sum: 1 }
             }
         },
         { $sort: { _id: 1 } }
@@ -70,17 +70,29 @@ exports.getAnalyticsData = catchAsync(async (req, res, next) => {
 
     // Ensure chart has at least some data points for visualization if empty
     let finalSalesOverTime = salesOverTime;
-    if (salesOverTime.length === 0) {
-        finalSalesOverTime = Array.from({ length: 7 }).map((_, i) => {
-            const d = new Date();
-            d.setDate(d.getDate() - (6 - i));
-            return {
-                _id: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                totalSales: 0,
-                clicks: Math.floor(Math.random() * 50) + 20,
-                pageViews: Math.floor(Math.random() * 200) + 100
-            };
-        });
+
+    // FILL EMPTY DATA for better UX (Zero State) 
+    // If we have no data, generate empty slots for the chart so it shows 0s instead of nothing
+    if (finalSalesOverTime.length === 0) {
+        finalSalesOverTime = [];
+        const today = new Date();
+        const daysToGen = range === '1D' ? 24 : (range === '1M' ? 30 : 7);
+
+        for (let i = daysToGen; i >= 0; i--) {
+            const d = new Date(today);
+            if (range === '1D') {
+                d.setHours(d.getHours() - i);
+                // Format manually to match groupFormat %H:00
+                // Note: Mongo's %H is 0-23. 
+                const h = d.getHours().toString().padStart(2, '0');
+                finalSalesOverTime.push({ _id: `${h}:00`, totalSales: 0, orderCount: 0 });
+            } else {
+                d.setDate(d.getDate() - i);
+                // Format YYYY-MM-DD
+                const dateStr = d.toISOString().split('T')[0];
+                finalSalesOverTime.push({ _id: dateStr, totalSales: 0, orderCount: 0 });
+            }
+        }
     }
 
     // Top Selling Products (Calculated from orders if possible, otherwise mock from product stats)
@@ -100,13 +112,19 @@ exports.getAnalyticsData = catchAsync(async (req, res, next) => {
 
     // If no orders yet, fall back to showing products with mock sales
     let finalTopProducts = topProductsData;
+
+    // Fallback: If no top sellers (no orders), show "Recent Products" with 0 sales
     if (topProductsData.length === 0) {
-        const products = await Product.find().limit(6);
-        finalTopProducts = products.map(p => ({
+        const recentProducts = await Product.find({})
+            .select('name price')
+            .sort('-createdAt')
+            .limit(5);
+
+        finalTopProducts = recentProducts.map(p => ({
             _id: p._id,
             name: p.name,
-            salesCount: Math.floor(Math.random() * 100) + 10,
-            revenue: (Math.random() * 5000 + 1000).toFixed(2)
+            salesCount: 0,
+            revenue: 0
         }));
     }
 
@@ -126,6 +144,12 @@ exports.getAnalyticsData = catchAsync(async (req, res, next) => {
         .sort('-createdAt')
         .limit(10);
 
+    // Orders by Status
+    const ordersByStatus = await Order.aggregate([
+        { $group: { _id: '$status', count: { $sum: 1 } } },
+        { $project: { name: '$_id', value: '$count', _id: 0 } }
+    ]);
+
     res.status(200).json({
         success: true,
         data: {
@@ -139,9 +163,11 @@ exports.getAnalyticsData = catchAsync(async (req, res, next) => {
             returningCustomersPercent: returningCustomersPercent || "0.0",
             newCustomersPercent: newCustomersPercent || "0.0",
             totalUniqueCustomers: totalUniqueCustomers || 0,
+            totalUsers: totalUsers || 0,
             sessionsByCountry: sessionsByCountry || [],
             topProducts: finalTopProducts || [],
-            recentOrders: recentOrders || []
+            recentOrders: recentOrders || [],
+            ordersByStatus: ordersByStatus || []
         }
     });
 });

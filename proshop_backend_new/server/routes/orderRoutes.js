@@ -11,10 +11,10 @@ router.get('/myorders', orderController.getMyOrders);
 router.get('/config/paypal', orderController.getPaypalClientId);
 router.get('/:id', orderController.getOrderById);
 router.patch('/:id/pay', orderController.updateOrderToPaid);
+router.delete('/:id', orderController.deleteOrder);
 
 // Admin Only
 router.get('/', authMiddleware.restrictTo('admin'), orderController.getOrders);
 router.patch('/:id/status', authMiddleware.restrictTo('admin'), orderController.updateOrderStatus);
-router.delete('/:id', authMiddleware.restrictTo('admin'), orderController.deleteOrder);
 
 module.exports = router;

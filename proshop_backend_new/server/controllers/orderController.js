@@ -95,9 +95,20 @@ exports.updateOrderStatus = catchAsync(async (req, res, next) => {
 
     // Create Notification
     try {
+        let title = `Order Updated: ${req.body.status}`;
+        let message = `Your order #${order._id} status has been updated to ${req.body.status}`;
+
+        if (req.body.status === 'shipped') {
+            title = '🚚 Order Shipped!';
+            message = `Great news! Your order #${order._id} has been shipped and is on its way.`;
+        } else if (req.body.status === 'delivered') {
+            title = '🎉 Order Delivered!';
+            message = `Your order #${order._id} has been delivered. We hope you love your new products!`;
+        }
+
         await Notification.create({
-            title: `Order Updated: ${req.body.status}`,
-            message: `Your order #${order._id} status has been updated to ${req.body.status}`,
+            title,
+            message,
             type: 'order',
             user: order.user
         });
@@ -175,9 +186,17 @@ exports.deleteOrder = catchAsync(async (req, res, next) => {
         return next(new AppError('Order not found', 404));
     }
 
-    // Admin can delete any order, regular users can only delete unpaid orders
-    if (req.user.role !== 'admin' && order.isPaid) {
-        return next(new AppError('Cannot delete a paid order', 400));
+    // Admin can delete any order
+    if (req.user.role === 'admin') {
+        // Admin delete - proceeds below
+    } else {
+        // Regular user: must be THEIR order and MUST be UNPAID
+        if (order.user.toString() !== req.user._id.toString()) {
+            return next(new AppError('Not authorized to delete this order', 403));
+        }
+        if (order.isPaid) {
+            return next(new AppError('Cannot delete a paid order', 400));
+        }
     }
 
     // Delete the order completely from database
