@@ -72,10 +72,12 @@ const productSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
-}, {
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true }
 });
+
+productSchema.index({ category: 1 });
+productSchema.index({ price: 1 });
+productSchema.index({ rating: -1 });
+productSchema.index({ createdAt: -1 });
 
 const Product = mongoose.model('Product', productSchema);
 module.exports = Product;
