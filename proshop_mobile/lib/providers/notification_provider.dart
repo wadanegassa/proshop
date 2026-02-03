@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -35,7 +36,7 @@ class NotificationProvider with ChangeNotifier {
       final response = await http.get(
         Uri.parse(url),
         headers: {'Authorization': 'Bearer $token'},
-      );
+      ).timeout(const Duration(seconds: 30));
       
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);

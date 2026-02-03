@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -25,7 +26,7 @@ class AuthProvider with ChangeNotifier {
         final response = await http.get(
           Uri.parse(ApiConstants.profile),
           headers: {'Authorization': 'Bearer $token'},
-        );
+        ).timeout(const Duration(seconds: 30));
 
         if (response.statusCode == 200) {
           final responseData = json.decode(response.body);
@@ -51,7 +52,7 @@ class AuthProvider with ChangeNotifier {
         Uri.parse(ApiConstants.login),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({'email': email, 'password': password}),
-      );
+      ).timeout(const Duration(seconds: 30));
 
       final responseData = json.decode(response.body);
 
@@ -88,7 +89,7 @@ class AuthProvider with ChangeNotifier {
           'email': email,
           'password': password,
         }),
-      );
+      ).timeout(const Duration(seconds: 30));
 
       final responseData = json.decode(response.body);
 

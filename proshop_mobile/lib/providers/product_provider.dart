@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../core/constants/api_constants.dart';
@@ -24,7 +25,8 @@ class ProductProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await http.get(Uri.parse(ApiConstants.products));
+      final response = await http.get(Uri.parse(ApiConstants.products))
+          .timeout(const Duration(seconds: 30));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final List<dynamic> productsData = data['data']['products'];
