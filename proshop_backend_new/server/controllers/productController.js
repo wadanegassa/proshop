@@ -56,22 +56,24 @@ exports.updateProduct = catchAsync(async (req, res, next) => {
     const prevDiscount = Number(oldProduct.discount || 0);
 
     if (newDiscount && newDiscount >= 20 && newDiscount > prevDiscount) {
-        try {
-            const users = await User.find({ role: 'user' });
-            if (users.length > 0) {
-                const notifications = users.map(user => ({
-                    title: '🔥 Big Offer Alert!',
-                    message: `${product.name} is now ${newDiscount}% OFF! Grab it before it's gone.`,
-                    type: 'alert',
-                    user: user._id,
-                    createdAt: Date.now()
-                }));
-                await Notification.insertMany(notifications);
-                console.log(`Sent offer notifications to ${users.length} users`);
+        setImmediate(async () => {
+            try {
+                const users = await User.find({ role: 'user' });
+                if (users.length > 0) {
+                    const notifications = users.map(user => ({
+                        title: '🔥 Big Offer Alert!',
+                        message: `${product.name} is now ${newDiscount}% OFF! Grab it before it's gone.`,
+                        type: 'alert',
+                        user: user._id,
+                        createdAt: Date.now()
+                    }));
+                    await Notification.insertMany(notifications);
+                    console.log(`Sent offer notifications to ${users.length} users`);
+                }
+            } catch (err) {
+                console.error('Offer Notification Error:', err.message);
             }
-        } catch (err) {
-            console.error('Offer Notification Error:', err.message);
-        }
+        });
     }
 
     res.status(200).json({
