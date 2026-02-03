@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../constants/app_colors.dart';
 import '../constants/api_constants.dart';
 
@@ -7,6 +8,8 @@ class ProductImage extends StatelessWidget {
   final double? height;
   final double? width;
   final BoxFit fit;
+  final int? cacheWidth;
+  final int? cacheHeight;
 
   const ProductImage({
     super.key,
@@ -14,6 +17,8 @@ class ProductImage extends StatelessWidget {
     this.height,
     this.width,
     this.fit = BoxFit.contain,
+    this.cacheWidth,
+    this.cacheHeight,
   });
 
   @override
@@ -23,12 +28,20 @@ class ProductImage extends StatelessWidget {
     }
 
     if (imagePath.startsWith('http')) {
-      return Image.network(
-        imagePath,
+      return CachedNetworkImage(
+        imageUrl: imagePath,
         height: height,
         width: width,
         fit: fit,
-        errorBuilder: (context, error, stackTrace) =>
+        memCacheWidth: cacheWidth,
+        memCacheHeight: cacheHeight,
+        placeholder: (context, url) => Container(
+          height: height,
+          width: width,
+          color: Colors.grey[200],
+          child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        ),
+        errorWidget: (context, url, error) =>
             Icon(Icons.image, size: height ?? 50, color: Theme.of(context).hintColor),
       );
     }
@@ -45,12 +58,20 @@ class ProductImage extends StatelessWidget {
        final baseUri = Uri.parse(ApiConstants.baseUrl);
        final origin = '${baseUri.scheme}://${baseUri.host}:${baseUri.port}';
        
-       return Image.network(
-        '$origin$cleanPath',
+       return CachedNetworkImage(
+        imageUrl: '$origin$cleanPath',
         height: height,
         width: width,
         fit: fit,
-        errorBuilder: (context, error, stackTrace) =>
+        memCacheWidth: cacheWidth,
+        memCacheHeight: cacheHeight,
+        placeholder: (context, url) => Container(
+          height: height,
+          width: width,
+          color: Colors.grey[200],
+          child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        ),
+        errorWidget: (context, url, error) =>
             Icon(Icons.image, size: height ?? 50, color: Theme.of(context).hintColor),
       );
     }
