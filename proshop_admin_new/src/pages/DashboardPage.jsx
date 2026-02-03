@@ -57,9 +57,44 @@ const DashboardPage = () => {
                 // Stable locations for map
                 // Real locations only - for now this might be empty as we don't have lat/lng on orders
                 // Future: Add geocoding or city-based mapping
-                if (data.recentOrders) {
-                    const locations = [];
-                    // We could map cities here if we had a dictionary, but for now strictly NO MOCK random data.
+                // Map City Data to Coordinates
+                const CITY_COORDINATES = {
+                    'addis ababa': [9.0350, 38.7468],
+                    'adama': [8.5500, 39.2667],
+                    'nazret': [8.5500, 39.2667],
+                    'bahir dar': [11.5850, 37.3900],
+                    'gondar': [12.6000, 37.4667],
+                    'dire dawa': [9.5833, 41.8667],
+                    'hawassa': [7.0667, 38.4667],
+                    'awassa': [7.0667, 38.4667],
+                    'mekelle': [13.4967, 39.4753],
+                    'jimma': [7.6667, 36.8333],
+                    'jijiga': [9.3500, 42.8000],
+                    'shashemene': [7.2000, 38.6000],
+                    'bishoftu': [8.7500, 38.9833],
+                    'debre zeit': [8.7500, 38.9833],
+                    'arba minch': [6.0333, 37.5500],
+                    'harar': [9.3100, 42.1200],
+                    'dilla': [6.4000, 38.3100],
+                    'nekemte': [9.0833, 36.5500],
+                    'debre birhan': [9.6833, 39.5333],
+                    'assela': [7.9500, 39.1167],
+                    'debre markos': [10.3500, 37.7333],
+                    'kombolcha': [11.0833, 39.7333],
+                    'dessie': [11.1333, 39.6333]
+                };
+
+                if (data.sessionsByCity) {
+                    const locations = data.sessionsByCity.map(item => {
+                        const cityName = item.city ? item.city.toLowerCase().trim() : '';
+                        const coords = CITY_COORDINATES[cityName] || [9.145, 40.489673]; // Fallback to center
+                        return {
+                            id: item.city || 'Unknown',
+                            name: item.city || 'Unknown Location',
+                            pos: coords,
+                            count: item.sessions
+                        };
+                    });
                     setOrderLocations(locations);
                 }
             } catch (error) {
@@ -256,16 +291,16 @@ const DashboardPage = () => {
                                 url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
                             />
-                            {orderLocations.map((loc) => (
+                            {orderLocations.map((loc, idx) => (
                                 <Marker
-                                    key={loc.id}
+                                    key={idx}
                                     position={loc.pos}
                                 >
                                     <Popup>
                                         <div style={{ color: 'black' }}>
-                                            <b>Order #{loc.id.substring(loc.id.length - 6)}</b><br />
-                                            {loc.name}<br />
-                                            Active
+                                            <b>{loc.name}</b><br />
+                                            {loc.count} Orders<br />
+                                            Active Region
                                         </div>
                                     </Popup>
                                 </Marker>
@@ -273,9 +308,9 @@ const DashboardPage = () => {
                         </MapContainer>
                     </div>
                     <div className="sessions-list">
-                        {stats?.sessionsByCountry.slice(0, 4).map((c, i) => (
+                        {stats?.sessionsByCity.slice(0, 4).map((c, i) => (
                             <div key={i} className="session-item">
-                                <span className="country-info">{c.country || 'Ethiopia'}</span>
+                                <span className="country-info">{c.city || 'Unknown'}</span>
                                 <span className="session-count">{c.sessions} Orders</span>
                             </div>
                         ))}

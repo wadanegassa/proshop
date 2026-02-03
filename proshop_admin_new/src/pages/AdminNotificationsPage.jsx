@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { notificationsAPI } from '../services/api';
+import Toast from '../components/Toast';
 import { ShoppingBag, Bell, AlertTriangle, User, Check, Trash2, ChevronRight, Settings, Square, CheckSquare, Search, Filter, RefreshCw } from 'lucide-react';
 
 const AdminNotificationsPage = () => {
@@ -9,6 +10,7 @@ const AdminNotificationsPage = () => {
     const [selectedIds, setSelectedIds] = useState([]);
     const [showConfirm, setShowConfirm] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [toast, setToast] = useState(null);
 
     const fetchAllNotifications = useCallback(async (manual = false) => {
         if (manual) setIsRefreshing(true);
@@ -66,9 +68,11 @@ const AdminNotificationsPage = () => {
             try {
                 await notificationsAPI.deleteMultiple(selectedIds);
                 setNotifications(prev => prev.filter(n => !selectedIds.includes(n._id)));
+                setToast({ message: `${selectedIds.length} notifications deleted permanently.`, type: 'success' });
                 setSelectedIds([]);
             } catch (error) {
                 console.error(error);
+                setToast({ message: 'Failed to delete selected notifications.', type: 'error' });
                 fetchAllNotifications();
             }
         }
@@ -79,8 +83,10 @@ const AdminNotificationsPage = () => {
             await notificationsAPI.deleteOne(id);
             setNotifications(prev => prev.filter(n => n._id !== id));
             setSelectedIds(prev => prev.filter(i => i !== id));
+            setToast({ message: 'Notification deleted permanently.', type: 'success' });
         } catch (error) {
             console.error(error);
+            setToast({ message: 'Failed to delete notification.', type: 'error' });
             fetchAllNotifications();
         }
     };
@@ -93,8 +99,10 @@ const AdminNotificationsPage = () => {
             setNotifications([]);
             setSelectedIds([]);
             setShowConfirm(false);
+            setToast({ message: 'All system notifications cleared.', type: 'success' });
         } catch (error) {
             console.error(error);
+            setToast({ message: 'Failed to clear system notifications.', type: 'error' });
         }
     };
 
@@ -107,6 +115,7 @@ const AdminNotificationsPage = () => {
 
     return (
         <div className="admin-notifications-page fade-in">
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
             <div className="page-header">
                 <div className="header-left">
                     <h1>SYSTEM NOTIFICATIONS</h1>
