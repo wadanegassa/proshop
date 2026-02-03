@@ -131,7 +131,7 @@ const ProductListPage = () => {
                                     <td>
                                         <div className="product-info-cell">
                                             <div className="product-thumb">
-                                                <img src={getImageUrl(product.images[0])} alt="" />
+                                                <img src={getImageUrl(product.images[0])} alt="" loading="lazy" />
                                             </div>
                                             <div className="product-text">
                                                 <span className="p-title">{product.name}</span>
