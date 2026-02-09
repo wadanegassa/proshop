@@ -1,98 +1,144 @@
 # ProShop - Full Stack E-Commerce Solution
 
-ProShop is a complete e-commerce ecosystem designed to provide a seamless shopping experience for customers and a powerful management tool for administrators. It features a scalable backend, a modern web-based admin panel, and a cross-platform mobile application.
+ProShop is a robust and scalable e-commerce platform designed to provide a seamless shopping experience for customers and a powerful management interface for administrators. It features a high-performance backend, a modern analytical admin dashboard, and a cross-platform mobile application.
 
-## 🚀 Components
+## 🚀 Project Overview
 
-The project is organized into three main modules:
+The ecosystem consists of three main components:
 
-### 1. Backend API (`proshop_backend_new`)
-The backbone of the application, handling all data processing, authentication, and business logic.
--   **Tech**: Node.js, Express, MongoDB
--   **Features**:
-    -   RESTful API endpoints
-    -   JWT Authentication (Admin & User)
-    -   Image Uploads with Multer
-    -   Order & Product Management
+1.  **Backend API (`proshop_backend_new`)**: The core logic handling data, authentication, and payments.
+2.  **Admin Dashboard (`proshop_admin_new`)**: A web-based command center for store management.
+3.  **Mobile App (`proshop_mobile`)**: A native mobile experience for customers.
 
-### 2. Admin Dashboard (`proshop_admin_new`)
-A responsive web application for store administrators to manage the platform.
--   **Tech**: React, Vite, Recharts, Framer Motion
--   **Features**:
-    -   Product creation and editing
-    -   Order tracking and status updates
-    -   Sales analytics and visualization
-    -   Interactive maps and charts
+---
 
-### 3. Mobile App (`proshop_mobile`)
-A customer-facing mobile application for browsing and purchasing products.
--   **Tech**: Flutter, Dart
--   **Features**:
-    -   Product catalog and search
-    -   User authentication and profile management
-    -   Shopping cart and wishlist
-    -   Secure checkout process
+## 🛠️ Technology Stack
 
-## ⚡ Performance Optimizations
+### 1. Backend API
+Built with **Node.js** and **Express**, focusing on performance and security.
+*   **Core**: Node.js, Express.js
+*   **Database**: MongoDB (with Mongoose ODM)
+*   **Authentication**: JSON Web Tokens (JWT), BCrypt
+*   **Security**: Helmet (Headers), CORS
+*   **Optimization**: Compression (Gzip), Morgan (Logging)
+*   **File Handling**: Multer (Image Uploads)
 
-We have implemented system-wide optimizations to ensure high performance and scalability:
+### 2. Admin Dashboard
+A modern Single Page Application (SPA) built with **React** and **Vite**.
+*   **Framework**: React.js (Vite)
+*   **Styling & UI**: Framer Motion (Animations), Lucide React (Icons)
+*   **State & Networking**: Axios
+*   **Analytics & Visualization**: Recharts, React Simple Maps, D3 Scale
+*   **Features**:
+    *   PDF Report Generation (`jspdf`, `jspdf-autotable`)
+    *   Interactive Maps (`react-leaflet`)
+    *   Real-time Notifications (`react-hot-toast`)
 
--   **Backend**: 
-    -   Gzip compression via `compression` middleware for 70% smaller payloads.
-    -   Optimized MongoDB indexing for sub-200ms query responses.
-    -   Offloaded heavy tasks (notifications) to prevent event loop blocking.
--   **Mobile**: 
-    -   Intelligent image caching with `cached_network_image`.
-    -   Memory optimization using `cacheWidth/cacheHeight` (70% reduction).
-    -   Render isolation with `RepaintBoundary` to eliminate jank.
--   **Admin**: 
-    -   Lazy loading for heavy media assets.
+### 3. Mobile Application
+A cross-platform mobile app built with **Flutter**.
+*   **Framework**: Flutter (Dart)
+*   **State Management**: Provider
+*   **Networking**: HTTP
+*   **Payments**:
+    *   Stripe (`flutter_stripe`)
+    *   PayPal (`flutter_paypal_payment`)
+*   **Storage**: Flutter Secure Storage, Shared Preferences
+*   **Performance**: Cached Network Image, Flutter Cache Manager
 
-## 🛠️ Tech Stack Summary
+---
 
-| Component | Key Technologies |
-| :--- | :--- |
-| **Backend** | Node.js, Express.js, MongoDB, Mongoose, JWT, Bcrypt, Compression |
-| **Admin** | React.js, Vite, Axios, Recharts, Framer Motion, Lucide React |
-| **Mobile** | Flutter, Dart, Provider, CachedNetworkImage, FlutterCacheManager |
+## ✨ Key Features
+
+### Backend
+*   **RESTful API**: Comprehensive endpoints for products, users, orders, and uploads.
+*   **Secure Auth**: Middleware for protecting admin and user routes.
+*   **Image Processing**: Efficient handling of product images.
+*   **Performance**: Sub-200ms query responses with optimized indexing.
+
+### Admin Panel
+*   **Dashboard**: Visual analytics for sales, users, and orders.
+*   **Product Management**: Create, edit, and delete products easily.
+*   **Order Tracking**: Monitor order status and details.
+*   **Reporting**: Generate and export PDF reports for business insights.
+*   **Geolocation**: Visualize user distribution on interactive maps.
+
+### Mobile App
+*   **User Friendly**: Intuitive UI for browsing and searching products.
+*   **Secure Checkout**: Integrated Stripe and PayPal payment gateways.
+*   **Personalization**: Wishlist and user profile management.
+*   **Fast Loading**: Optimized image caching and minimized network usage.
+
+---
 
 ## 📂 Project Structure
 
 ```bash
 /home/pro/projects/proshop/
-├── proshop_backend_new/  # Server-side code
-├── proshop_admin_new/    # Admin Web Dashboard
-└── proshop_mobile/       # Flutter Mobile Application
+├── proshop_backend_new/  # Node.js/Express Server
+├── proshop_admin_new/    # React Admin Dashboard
+└── proshop_mobile/       # Flutter User App
 ```
+
+---
 
 ## 🏁 Getting Started
 
-Follow these steps to set up the project locally.
+Follow these instructions to set up the project locally.
 
 ### Prerequisites
--   Node.js (v16+)
--   Flutter SDK (v3.0+)
--   MongoDB (Local or Atlas URI)
+*   **Node.js** (v16 or higher)
+*   **Flutter SDK** (v3.0 or higher)
+*   **MongoDB** (Local instance or Atlas URI)
 
 ### 1. Backend Setup
+Navigate to the backend directory and install dependencies:
 ```bash
 cd proshop_backend_new
 npm install
-# Create a .env file and add your MONGO_URI and JWT_SECRET
-npm run dev
+```
+
+**Configuration**:
+Create a `.env` file in `proshop_backend_new/` with the following:
+```env
+NODE_ENV=development
+PORT=5000
+MONGO_URI=your_mongodb_uri
+JWT_SECRET=your_jwt_secret
+```
+
+**Run Server**:
+```bash
+npm run dev  # Runs with Nodemon
 ```
 
 ### 2. Admin Panel Setup
+Navigate to the admin directory:
 ```bash
 cd proshop_admin_new
 npm install
-npm run dev
 ```
 
+**Run Dashboard**:
+```bash
+npm run dev
+```
+Access the admin panel at `http://localhost:5173`.
+
 ### 3. Mobile App Setup
+Navigate to the mobile directory:
 ```bash
 cd proshop_mobile
 flutter pub get
+```
+
+**Run App**:
+```bash
+# Ensure an emulator is running or a device is connected
 flutter run
 ```
 
+---
+
+## 📄 License
+
+This project is created for educational and portfolio purposes.
