@@ -81,6 +81,8 @@ const orderSchema = new mongoose.Schema({
         enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
         default: 'pending'
     }
+}, {
+    timestamps: true
 });
 
 orderSchema.index({ user: 1 });

@@ -67,30 +67,46 @@ exports.getAnalyticsData = catchAsync(async (req, res, next) => {
         { $sort: { _id: 1 } }
     ]);
 
-    // Ensure chart has at least some data points for visualization if empty
-    let finalSalesOverTime = salesOverTime;
+    // Generate a map of existing data for quick lookup
+    const salesMap = new Map();
+    salesOverTime.forEach(item => {
+        salesMap.set(item._id, item);
+    });
 
-    // FILL EMPTY DATA for better UX (Zero State) 
-    // If we have no data, generate empty slots for the chart so it shows 0s instead of nothing
-    if (finalSalesOverTime.length === 0) {
-        finalSalesOverTime = [];
-        const today = new Date();
-        const daysToGen = range === '1D' ? 24 : (range === '1M' ? 30 : 7);
+    // Generate the complete timeline based on the range
+    const finalSalesOverTime = [];
+    const now = new Date();
 
-        for (let i = daysToGen; i >= 0; i--) {
-            const d = new Date(today);
-            if (range === '1D') {
-                d.setHours(d.getHours() - i);
-                // Format manually to match groupFormat %H:00
-                // Note: Mongo's %H is 0-23. 
-                const h = d.getHours().toString().padStart(2, '0');
-                finalSalesOverTime.push({ _id: `${h}:00`, totalSales: 0, orderCount: 0 });
-            } else {
-                d.setDate(d.getDate() - i);
-                // Format YYYY-MM-DD
-                const dateStr = d.toISOString().split('T')[0];
-                finalSalesOverTime.push({ _id: dateStr, totalSales: 0, orderCount: 0 });
-            }
+    // Determine the number of intervals and the time unit
+    let intervals = 0;
+    if (range === '1D') intervals = 24; // Hours
+    else if (range === '1M') intervals = 30; // Days
+    else if (range === '6M') intervals = 6; // Months
+    else if (range === '1Y') intervals = 12; // Months
+    else if (range === 'ALL') intervals = 12; // Default to last 12 months if ALL, or handle differently
+
+    for (let i = intervals - 1; i >= 0; i--) {
+        const d = new Date(now);
+        let key = '';
+
+        if (range === '1D') {
+            d.setHours(d.getHours() - i);
+            const h = d.getHours().toString().padStart(2, '0');
+            key = `${h}:00`;
+        } else if (range === '1M') {
+            d.setDate(d.getDate() - i);
+            key = d.toISOString().split('T')[0];
+        } else if (range === '6M' || range === '1Y' || range === 'ALL') {
+            d.setMonth(d.getMonth() - i);
+            const year = d.getFullYear();
+            const month = (d.getMonth() + 1).toString().padStart(2, '0');
+            key = `${year}-${month}`;
+        }
+
+        if (salesMap.has(key)) {
+            finalSalesOverTime.push(salesMap.get(key));
+        } else {
+            finalSalesOverTime.push({ _id: key, totalSales: 0, orderCount: 0 });
         }
     }
 
