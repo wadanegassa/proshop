@@ -8,7 +8,7 @@ import { useTheme } from '../context/ThemeContext';
 
 const AdminLayout = () => {
     const { user } = useAuth();
-    const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+    const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll } = useNotifications();
     const { isDarkMode, toggleTheme } = useTheme();
     const location = useLocation();
     const navigate = useNavigate();
