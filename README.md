@@ -14,6 +14,29 @@ The ecosystem consists of three main components:
 
 ## 🛠️ Technology Stack
 
+## Mobile App Setup & Connection
+
+When testing the mobile app on a physical device, follow these steps to ensure it can connect to your local backend server:
+
+### 1. Ensure Same Network
+Your phone and development machine must be connected to the same WiFi network.
+
+### 2. Configure Backend URL
+The app now supports dynamic API URL configuration. 
+- **Default Connection**: The app is configured to use `http://10.42.0.176:5000/api/v1` by default.
+- **Manual Override**: If your IP changes, you can update it in the app without rebuilding:
+  1. Open the app.
+  2. Go to **Profile** → **Settings** → **Developer Settings**.
+  3. Toggle **"Use Custom API URL"**.
+  4. Enter your computer's local IP (e.g., `http://192.168.1.5:5000/api/v1`).
+  5. Tap **"Test Connection"** to verify, then **"Save Configuration"**.
+
+### 3. Troubleshooting
+- Run `hostname -I` (Linux/Mac) or `ipconfig` (Windows) to find your computer's IP.
+- Ensure the backend is running (`npm run dev`).
+- Disable your computer's firewall temporarily if the connection is refused.
+- Use the **"Test Connection"** tool in Developer Settings for detailed error diagnostics.
+
 ### 1. Backend API
 Built with **Node.js** and **Express**, focusing on performance and security.
 *   **Core**: Node.js, Express.js

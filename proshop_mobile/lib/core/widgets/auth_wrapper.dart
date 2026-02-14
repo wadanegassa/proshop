@@ -3,6 +3,11 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../features/home/screens/main_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
+import '../../features/settings/screens/developer_settings_screen.dart';
+import '../services/network_service.dart';
+import '../services/api_config_service.dart';
+import '../constants/api_constants.dart';
+import '../widgets/connection_error_dialog.dart';
 
 class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
@@ -25,6 +30,32 @@ class _AuthWrapperState extends State<AuthWrapper> {
   }
 
   Future<void> _checkAuth() async {
+    // 0. Initialize API URL from config
+    final apiUrl = await ApiConfigService.getApiUrl();
+    ApiConstants.baseUrl = apiUrl;
+
+    // 1. Initial connectivity check
+    final result = await NetworkService.testConnection();
+    
+    if (!result.isSuccess) {
+      if (mounted) {
+        await ConnectionErrorDialog.show(
+          context,
+          title: 'Connection Error',
+          message: result.getDetailedMessage(),
+          onRetry: _checkAuth,
+          onOpenSettings: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const DeveloperSettingsScreen()),
+            ).then((_) => _checkAuth());
+          },
+        );
+      }
+      return;
+    }
+
+    // 2. Perform auto-login if connected
     await context.read<AuthProvider>().autoLogin();
     if (mounted) {
       setState(() {

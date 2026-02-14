@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -68,8 +69,37 @@ class AuthProvider with ChangeNotifier {
         notifyListeners();
         return false;
       }
+    } on SocketException catch (e) {
+      _error = 'Cannot reach server at ${ApiConstants.baseUrl}\n\n'
+          'Make sure:\n'
+          '• Your phone and computer are on the same WiFi\n'
+          '• The backend server is running\n'
+          '• The IP address is correct\n\n'
+          'Go to Settings → Developer to update the server URL.';
+      debugPrint('Login socket error: $e');
+      notifyListeners();
+      return false;
+    } on TimeoutException catch (e) {
+      _error = 'Connection timed out.\n\n'
+          'Check your WiFi connection and try again.';
+      debugPrint('Login timeout: $e');
+      notifyListeners();
+      return false;
+    } on HttpException catch (e) {
+      _error = 'HTTP error occurred.\n\n'
+          'The server may be experiencing issues.';
+      debugPrint('Login HTTP error: $e');
+      notifyListeners();
+      return false;
+    } on FormatException catch (e) {
+      _error = 'Invalid response from server.\n\n'
+          'The server URL might be incorrect.';
+      debugPrint('Login format error: $e');
+      notifyListeners();
+      return false;
     } catch (e) {
-      _error = 'Connection failed. Please check your internet.';
+      _error = 'Unexpected error: ${e.toString()}\n\n'
+          'Please try again or check Settings → Developer.';
       debugPrint('Login error: $e');
       notifyListeners();
       return false;
@@ -105,8 +135,37 @@ class AuthProvider with ChangeNotifier {
         notifyListeners();
         return false;
       }
+    } on SocketException catch (e) {
+      _error = 'Cannot reach server at ${ApiConstants.baseUrl}\n\n'
+          'Make sure:\n'
+          '• Your phone and computer are on the same WiFi\n'
+          '• The backend server is running\n'
+          '• The IP address is correct\n\n'
+          'Go to Settings → Developer to update the server URL.';
+      debugPrint('Register socket error: $e');
+      notifyListeners();
+      return false;
+    } on TimeoutException catch (e) {
+      _error = 'Connection timed out.\n\n'
+          'Check your WiFi connection and try again.';
+      debugPrint('Register timeout: $e');
+      notifyListeners();
+      return false;
+    } on HttpException catch (e) {
+      _error = 'HTTP error occurred.\n\n'
+          'The server may be experiencing issues.';
+      debugPrint('Register HTTP error: $e');
+      notifyListeners();
+      return false;
+    } on FormatException catch (e) {
+      _error = 'Invalid response from server.\n\n'
+          'The server URL might be incorrect.';
+      debugPrint('Register format error: $e');
+      notifyListeners();
+      return false;
     } catch (e) {
-      _error = 'Connection failed. Please check your internet.';
+      _error = 'Unexpected error: ${e.toString()}\n\n'
+          'Please try again or check Settings → Developer.';
       debugPrint('Register error: $e');
       notifyListeners();
       return false;

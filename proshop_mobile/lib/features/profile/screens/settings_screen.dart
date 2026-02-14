@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/design_background.dart';
 import '../../../providers/auth_provider.dart';
+import '../../settings/screens/developer_settings_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -84,6 +85,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           icon: Icons.security_outlined,
                           title: 'Two-Factor Authentication',
                           onTap: () {},
+                        ),
+                        const SizedBox(height: 32),
+                        _buildSectionHeader(context, 'Developer'),
+                        const SizedBox(height: 16),
+                        _buildNavigationItem(
+                          context,
+                          icon: Icons.developer_mode_outlined,
+                          title: 'Developer Settings',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const DeveloperSettingsScreen()),
+                            );
+                          },
                         ),
                         const SizedBox(height: 48),
                         _buildSaveButton(),
