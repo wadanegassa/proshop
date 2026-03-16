@@ -23,7 +23,7 @@ Your phone and development machine must be connected to the same WiFi network.
 
 ### 2. Configure Backend URL
 The app now supports dynamic API URL configuration. 
-- **Default Connection**: The app is configured to use `http://10.42.0.176:5000/api/v1` by default.
+- **Default Connection**: The app is configured to use `http://192.168.137.127:5000/api/v1` by default.
 - **Manual Override**: If your IP changes, you can update it in the app without rebuilding:
   1. Open the app.
   2. Go to **Profile** → **Settings** → **Developer Settings**.
@@ -65,6 +65,7 @@ A cross-platform mobile app built with **Flutter**.
 *   **Payments**:
     *   Stripe (`flutter_stripe`)
     *   PayPal (`flutter_paypal_payment`)
+    *   Chapa (Ethiopian Birr - ETB)
 *   **Storage**: Flutter Secure Storage, Shared Preferences
 *   **Performance**: Cached Network Image, Flutter Cache Manager
 
