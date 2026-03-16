@@ -9,6 +9,7 @@ import '../../../providers/settings_provider.dart';
 import '../../../routes/app_routes.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:flutter_paypal_payment/flutter_paypal_payment.dart';
+import 'webview_chapa_screen.dart'; 
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -91,13 +92,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (mounted) {
       if (orderId != null) {
         if (_paymentMethod == 'PayPal') {
-          // Real PayPal Sandbox Integration in Full Screen
+          // 1. Fetch PayPal Client ID
+          final clientId = await orderProvider.getPaypalClientId();
+          if (clientId == null) {
+            await _handlePaymentFailure(orderId, 'Failed to initialize PayPal. Please try again.');
+            return;
+          }
+
           if (mounted) {
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (BuildContext context) => PaypalCheckoutView(
                   sandboxMode: true,
-                  clientId: "AcMp7SH0BReY5lhCu00v0czGTOgHRPDrwPimLJA2sAnEm147Oj8pM5aHCMYkVKlHlIIQXtxdhNTB4zXV",
+                  clientId: clientId,
                   secretKey: "EA_KT5fpqMgou6Zw88Smer5AJPXGYboncPuwEzRBMI-B0enZ9uYX2i5C0z1DwYFyzTarWIDTcfA5nyQ6",
                   transactions: [
                     {
@@ -219,6 +226,35 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               await _handlePaymentFailure(orderId, 'Payment cancelled or failed.');
             }
           }
+        } else if (_paymentMethod == 'Chapa') {
+          // Chapa Payment Flow
+          debugPrint('Starting Chapa Payment Flow...');
+          final resultData = await orderProvider.initializeChapaPayment(orderId);
+          
+          if (resultData != null) {
+            final checkoutUrl = resultData['checkoutUrl']!;
+            final txRef = resultData['txRef']!;
+            
+            if (mounted) {
+              final result = await Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => WebViewChapaScreen(
+                    url: checkoutUrl,
+                    txRef: txRef,
+                    orderId: orderId,
+                  ),
+                ),
+              );
+
+              if (result == true && mounted) {
+                _finishCheckout(selectedItems);
+              } else if (mounted) {
+                await _handlePaymentFailure(orderId, 'Chapa Payment was not completed.');
+              }
+            }
+          } else {
+            await _handlePaymentFailure(orderId, 'Failed to initialize Chapa payment.');
+          }
         } else {
           // For other methods like COD that don't need immediate payment
           _finishCheckout(selectedItems);
@@ -306,6 +342,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
                         _buildPaymentOption(context, 'Stripe', Icons.credit_card_outlined),
                         _buildPaymentOption(context, 'PayPal', Icons.payment),
+                        _buildPaymentOption(context, 'Chapa', Icons.account_balance_wallet_outlined),
                         
                         const SizedBox(height: 32),
                         _buildOrderSummary(context),

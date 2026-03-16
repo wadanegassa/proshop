@@ -19,16 +19,16 @@ class ProductStackedBanner extends StatelessWidget {
         children: [
           // Background "receding" cards
           for (int i = 0; i < 3; i++)
-            _buildBackCard(i),
+            _buildBackCard(context, i),
           
           // Main product card in front
-          _buildMainCard(products.first),
+          _buildMainCard(context, products.first),
         ],
       ),
     );
   }
 
-  Widget _buildBackCard(int index) {
+  Widget _buildBackCard(BuildContext context, int index) {
     return Transform.translate(
       offset: Offset(-20.0 * (index + 1), -10.0 * (index + 1)),
       child: Transform.rotate(
@@ -51,7 +51,7 @@ class ProductStackedBanner extends StatelessWidget {
     );
   }
 
-  Widget _buildMainCard(ProductModel product) {
+  Widget _buildMainCard(BuildContext context, ProductModel product) {
     return Container(
       width: 300,
       height: 180,
