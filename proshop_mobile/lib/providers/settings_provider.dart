@@ -97,7 +97,12 @@ class SettingsProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/settings'));
+      final Future<http.Response> future = http.get(
+        Uri.parse('${ApiConstants.baseUrl}/settings'),
+        headers: ApiConstants.defaultHeaders,
+      );
+      
+      final response = await future.timeout(ApiConstants.connectionTimeout);
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);

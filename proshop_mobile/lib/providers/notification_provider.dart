@@ -33,10 +33,15 @@ class NotificationProvider with ChangeNotifier {
 
       final url = ApiConstants.notifications;
       
-      final response = await http.get(
+      final Future<http.Response> future = http.get(
         Uri.parse(url),
-        headers: {'Authorization': 'Bearer $token'},
-      ).timeout(const Duration(seconds: 30));
+        headers: {
+          ...ApiConstants.defaultHeaders,
+          'Authorization': 'Bearer $token',
+        },
+      );
+      
+      final response = await future.timeout(ApiConstants.connectionTimeout);
       
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
@@ -54,10 +59,15 @@ class NotificationProvider with ChangeNotifier {
   Future<void> markAsRead(String id) async {
     try {
       final token = await _storage.read(key: 'token');
-      await http.patch(
+      final Future<http.Response> future = http.patch(
         Uri.parse('${ApiConstants.notifications}/$id/read'),
-        headers: {'Authorization': 'Bearer $token'},
+        headers: {
+          ...ApiConstants.defaultHeaders,
+          'Authorization': 'Bearer $token',
+        },
       );
+      
+      await future.timeout(ApiConstants.connectionTimeout);
       
       final index = _notifications.indexWhere((n) => n.id == id);
       if (index != -1) {
@@ -72,10 +82,15 @@ class NotificationProvider with ChangeNotifier {
   Future<void> markAllAsRead() async {
     try {
       final token = await _storage.read(key: 'token');
-      await http.patch(
+      final Future<http.Response> future = http.patch(
         Uri.parse('${ApiConstants.notifications}/read-all'),
-        headers: {'Authorization': 'Bearer $token'},
+        headers: {
+          ...ApiConstants.defaultHeaders,
+          'Authorization': 'Bearer $token',
+        },
       );
+      
+      await future.timeout(ApiConstants.connectionTimeout);
       
       for (var n in _notifications) {
         n.read = true;
@@ -97,10 +112,15 @@ class NotificationProvider with ChangeNotifier {
 
     try {
       final token = await _storage.read(key: 'token');
-      await http.delete(
+      final Future<http.Response> future = http.delete(
         Uri.parse('${ApiConstants.notifications}/$id'),
-        headers: {'Authorization': 'Bearer $token'},
+        headers: {
+          ...ApiConstants.defaultHeaders,
+          'Authorization': 'Bearer $token',
+        },
       );
+      
+      await future.timeout(ApiConstants.connectionTimeout);
     } catch (e) {
        _notifications.insert(existingIndex, existingNotification);
        notifyListeners();
@@ -111,10 +131,15 @@ class NotificationProvider with ChangeNotifier {
   Future<void> clearAllNotifications() async {
     try {
       final token = await _storage.read(key: 'token');
-      await http.delete(
+      final Future<http.Response> future = http.delete(
         Uri.parse('${ApiConstants.notifications}/clear'),
-        headers: {'Authorization': 'Bearer $token'},
+        headers: {
+          ...ApiConstants.defaultHeaders,
+          'Authorization': 'Bearer $token',
+        },
       );
+      
+      await future.timeout(ApiConstants.connectionTimeout);
       _notifications.clear();
       notifyListeners();
     } catch (e) {

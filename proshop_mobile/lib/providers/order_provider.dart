@@ -20,10 +20,15 @@ class OrderProvider with ChangeNotifier {
 
     try {
       final token = await _storage.read(key: 'token');
-      final response = await http.get(
+      final Future<http.Response> future = http.get(
         Uri.parse(ApiConstants.myOrders),
-        headers: {'Authorization': 'Bearer $token'},
-      ).timeout(const Duration(seconds: 30));
+        headers: {
+          ...ApiConstants.defaultHeaders,
+          'Authorization': 'Bearer $token',
+        },
+      );
+      
+      final response = await future.timeout(ApiConstants.connectionTimeout);
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
@@ -41,14 +46,16 @@ class OrderProvider with ChangeNotifier {
   Future<String?> createOrder(OrderModel order) async {
     try {
       final token = await _storage.read(key: 'token');
-      final response = await http.post(
+      final Future<http.Response> future = http.post(
         Uri.parse(ApiConstants.orders),
         headers: {
-          'Content-Type': 'application/json',
+          ...ApiConstants.defaultHeaders,
           'Authorization': 'Bearer $token',
         },
         body: json.encode(order.toJson()),
       );
+      
+      final response = await future.timeout(ApiConstants.connectionTimeout);
 
       if (response.statusCode == 201) {
         final responseData = json.decode(response.body);
@@ -69,14 +76,16 @@ class OrderProvider with ChangeNotifier {
   Future<String?> payOrder(String orderId, Map<String, dynamic> paymentResult) async {
     try {
       final token = await _storage.read(key: 'token');
-      final response = await http.patch(
+      final Future<http.Response> future = http.patch(
         Uri.parse('${ApiConstants.orders}/$orderId/pay'),
         headers: {
-          'Content-Type': 'application/json',
+          ...ApiConstants.defaultHeaders,
           'Authorization': 'Bearer $token',
         },
         body: json.encode(paymentResult),
       );
+      
+      final response = await future.timeout(ApiConstants.connectionTimeout);
 
       debugPrint('Pay Order Response: ${response.statusCode}');
       if (response.statusCode == 200) {
@@ -95,10 +104,15 @@ class OrderProvider with ChangeNotifier {
   Future<String?> getPaypalClientId() async {
     try {
       final token = await _storage.read(key: 'token');
-      final response = await http.get(
+      final Future<http.Response> future = http.get(
         Uri.parse(ApiConstants.paypalConfig),
-        headers: {'Authorization': 'Bearer $token'},
+        headers: {
+          ...ApiConstants.defaultHeaders,
+          'Authorization': 'Bearer $token',
+        },
       );
+      
+      final response = await future.timeout(ApiConstants.connectionTimeout);
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
@@ -114,10 +128,15 @@ class OrderProvider with ChangeNotifier {
   Future<String?> getStripePublishableKey() async {
     try {
       final token = await _storage.read(key: 'token');
-      final response = await http.get(
+      final Future<http.Response> future = http.get(
         Uri.parse(ApiConstants.stripeConfig),
-        headers: {'Authorization': 'Bearer $token'},
+        headers: {
+          ...ApiConstants.defaultHeaders,
+          'Authorization': 'Bearer $token',
+        },
       );
+      
+      final response = await future.timeout(ApiConstants.connectionTimeout);
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
@@ -133,14 +152,16 @@ class OrderProvider with ChangeNotifier {
   Future<String?> createStripePaymentIntent(double amount) async {
     try {
       final token = await _storage.read(key: 'token');
-      final response = await http.post(
+      final Future<http.Response> future = http.post(
         Uri.parse(ApiConstants.stripePaymentIntent),
         headers: {
-          'Content-Type': 'application/json',
+          ...ApiConstants.defaultHeaders,
           'Authorization': 'Bearer $token',
         },
         body: json.encode({'amount': amount}),
       );
+      
+      final response = await future.timeout(ApiConstants.connectionTimeout);
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
@@ -158,10 +179,15 @@ class OrderProvider with ChangeNotifier {
   Future<bool> deleteOrder(String orderId) async {
     try {
       final token = await _storage.read(key: 'token');
-      final response = await http.delete(
+      final Future<http.Response> future = http.delete(
         Uri.parse('${ApiConstants.orders}/$orderId'),
-        headers: {'Authorization': 'Bearer $token'},
+        headers: {
+          ...ApiConstants.defaultHeaders,
+          'Authorization': 'Bearer $token',
+        },
       );
+      
+      final response = await future.timeout(ApiConstants.connectionTimeout);
 
       if (response.statusCode == 200) {
         await fetchOrders();
@@ -170,6 +196,56 @@ class OrderProvider with ChangeNotifier {
       return false;
     } catch (e) {
       debugPrint('Error deleting order: $e');
+      return false;
+    }
+  }
+
+  Future<Map<String, String>?> initializeChapaPayment(String orderId) async {
+    try {
+      final token = await _storage.read(key: 'token');
+      final Future<http.Response> future = http.post(
+        Uri.parse('${ApiConstants.chapaInitialize}/$orderId'),
+        headers: {
+          ...ApiConstants.defaultHeaders,
+          'Authorization': 'Bearer $token',
+        },
+      );
+      
+      final response = await future.timeout(ApiConstants.connectionTimeout);
+      debugPrint('Chapa Init Response Status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        return {
+          'checkoutUrl': responseData['data']['checkout_url'],
+          'txRef': responseData['data']['tx_ref'],
+        };
+      }
+      debugPrint('Chapa Initialization Failed: ${response.statusCode}');
+      debugPrint('Chapa Error Details: ${response.body}');
+      return null;
+    } catch (e) {
+      debugPrint('Error initializing Chapa: $e');
+      return null;
+    }
+  }
+
+  Future<bool> verifyChapaPayment(String txRef) async {
+    try {
+      final Future<http.Response> future = http.get(
+        Uri.parse('${ApiConstants.chapaVerify}/$txRef'),
+        headers: ApiConstants.defaultHeaders,
+      );
+      
+      final response = await future.timeout(ApiConstants.connectionTimeout);
+
+      if (response.statusCode == 200) {
+        await fetchOrders();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error verifying Chapa: $e');
       return false;
     }
   }

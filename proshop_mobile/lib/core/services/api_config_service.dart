@@ -78,11 +78,14 @@ class ApiConfigService {
   static Future<String> buildEndpoint(String endpoint) async {
     final baseUrl = await getApiUrl();
     
-    // Remove trailing slash from base URL if present
-    final cleanBase = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
+    // Ensure base URL doesn't end with a slash and endpoint doesn't start with one
+    final cleanBase = baseUrl.endsWith('/') 
+        ? baseUrl.substring(0, baseUrl.length - 1) 
+        : baseUrl;
     
-    // Remove leading slash from endpoint if present
-    final cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
+    final cleanEndpoint = endpoint.startsWith('/') 
+        ? endpoint.substring(1) 
+        : endpoint;
     
     return '$cleanBase/$cleanEndpoint';
   }

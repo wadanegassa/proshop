@@ -13,12 +13,15 @@ class NetworkService {
     
     try {
       // Try to reach the backend's root endpoint
-      final response = await http.get(
+      final Future<http.Response> future = http.get(
         Uri.parse(ApiConstants.baseUrl.replaceAll('/api/v1', '')),
-      ).timeout(
-        const Duration(seconds: 10),
+        headers: ApiConstants.defaultHeaders,
+      );
+      
+      final response = await future.timeout(
+        ApiConstants.connectionTimeout,
         onTimeout: () {
-          throw TimeoutException('Connection timed out after 10 seconds');
+          throw TimeoutException('Connection timed out after ${ApiConstants.connectionTimeout.inSeconds} seconds');
         },
       );
       
@@ -84,10 +87,15 @@ class NetworkService {
     final stopwatch = Stopwatch()..start();
     
     try {
-      final response = await http.get(
+      final Future<http.Response> future = http.get(
         Uri.parse(ApiConstants.profile),
-        headers: {'Authorization': 'Bearer $token'},
-      ).timeout(const Duration(seconds: 10));
+        headers: {
+          ...ApiConstants.defaultHeaders,
+          'Authorization': 'Bearer $token',
+        },
+      );
+      
+      final response = await future.timeout(ApiConstants.connectionTimeout);
       
       stopwatch.stop();
       

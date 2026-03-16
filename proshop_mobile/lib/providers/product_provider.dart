@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../core/constants/api_constants.dart';
 import '../models/product_model.dart';
-import '../providers/auth_provider.dart';
-import 'package:provider/provider.dart';
 
 class ProductProvider with ChangeNotifier {
   List<ProductModel> _allProducts = [];
@@ -25,8 +23,17 @@ class ProductProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await http.get(Uri.parse(ApiConstants.products))
-          .timeout(const Duration(seconds: 30));
+      final url = ApiConstants.products;
+      debugPrint('🌐 [FetchProducts] Requesting: $url');
+      
+      final Future<http.Response> future = http.get(
+        Uri.parse(url),
+        headers: ApiConstants.defaultHeaders,
+      );
+      
+      final response = await future.timeout(ApiConstants.connectionTimeout);
+      debugPrint('✅ [FetchProducts] Status: ${response.statusCode}');
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final List<dynamic> productsData = data['data']['products'];
@@ -42,9 +49,11 @@ class ProductProvider with ChangeNotifier {
         _categories = categorySet.toList()..sort();
         
         _applyFilter();
+      } else {
+        debugPrint('❌ [FetchProducts] Failed with body: ${response.body}');
       }
     } catch (e) {
-      print('Error fetching products: $e');
+      debugPrint('🚨 [FetchProducts] ERROR: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -67,10 +76,10 @@ class ProductProvider with ChangeNotifier {
 
   Future<Map<String, dynamic>> addReview(String productId, int rating, String comment, String token) async {
     try {
-      final response = await http.post(
+      final Future<http.Response> future = http.post(
         Uri.parse('${ApiConstants.products}/$productId/reviews'),
         headers: {
-          'Content-Type': 'application/json',
+          ...ApiConstants.defaultHeaders,
           'Authorization': 'Bearer $token',
         },
         body: json.encode({
@@ -78,6 +87,8 @@ class ProductProvider with ChangeNotifier {
           'comment': comment,
         }),
       );
+      
+      final response = await future.timeout(ApiConstants.connectionTimeout);
 
       final data = json.decode(response.body);
 
@@ -92,7 +103,7 @@ class ProductProvider with ChangeNotifier {
         'message': data['message'] ?? 'Failed to submit review'
       };
     } catch (e) {
-      print('Error adding review: $e');
+      debugPrint('Error adding review: $e');
       return {'success': false, 'message': 'Connection error. Please try again.'};
     }
   }

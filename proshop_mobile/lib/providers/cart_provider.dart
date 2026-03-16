@@ -80,10 +80,15 @@ class CartProvider with ChangeNotifier {
       final token = await _storage.read(key: 'token');
       if (token == null) return;
 
-      final response = await http.get(
+      final Future<http.Response> future = http.get(
         Uri.parse(ApiConstants.cart),
-        headers: {'Authorization': 'Bearer $token'},
-      ).timeout(const Duration(seconds: 30));
+        headers: {
+          ...ApiConstants.defaultHeaders,
+          'Authorization': 'Bearer $token',
+        },
+      );
+      
+      final response = await future.timeout(ApiConstants.connectionTimeout);
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
@@ -126,14 +131,16 @@ class CartProvider with ChangeNotifier {
         'shoeSize': item.selectedShoeSize ?? ''
       }).toList();
 
-      await http.post(
+      final Future<http.Response> future = http.post(
         Uri.parse(ApiConstants.cart),
         headers: {
-          'Content-Type': 'application/json',
+          ...ApiConstants.defaultHeaders,
           'Authorization': 'Bearer $token',
         },
         body: json.encode({'items': cartData}),
       );
+      
+      await future.timeout(ApiConstants.connectionTimeout);
     } catch (e) {
       debugPrint('Error syncing cart: $e');
     }

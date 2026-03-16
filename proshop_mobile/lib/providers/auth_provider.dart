@@ -24,10 +24,20 @@ class AuthProvider with ChangeNotifier {
     final token = await _storage.read(key: 'token');
     if (token != null) {
       try {
-        final response = await http.get(
-          Uri.parse(ApiConstants.profile),
-          headers: {'Authorization': 'Bearer $token'},
-        ).timeout(const Duration(seconds: 30));
+        final url = ApiConstants.profile;
+        debugPrint('🌐 [AutoLogin] Requesting: $url');
+        debugPrint('📋 [AutoLogin] Headers: ${ApiConstants.defaultHeaders}');
+        
+        final Future<http.Response> future = http.get(
+          Uri.parse(url),
+          headers: {
+            ...ApiConstants.defaultHeaders,
+            'Authorization': 'Bearer $token',
+          },
+        );
+        
+        final response = await future.timeout(ApiConstants.connectionTimeout);
+        debugPrint('✅ [AutoLogin] Status: ${response.statusCode}');
 
         if (response.statusCode == 200) {
           final responseData = json.decode(response.body);
@@ -36,10 +46,11 @@ class AuthProvider with ChangeNotifier {
           _token = token;
           notifyListeners();
         } else {
+          debugPrint('❌ [AutoLogin] Failed with body: ${response.body}');
           await _storage.delete(key: 'token');
         }
       } catch (e) {
-        debugPrint('Auto login error: $e');
+        debugPrint('🚨 [AutoLogin] CRITICAL ERROR: $e');
       }
     }
   }
@@ -49,11 +60,18 @@ class AuthProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      final response = await http.post(
-        Uri.parse(ApiConstants.login),
-        headers: {'Content-Type': 'application/json'},
+      final url = ApiConstants.login;
+      debugPrint('🌐 [Login] Requesting: $url');
+      debugPrint('📋 [Login] Headers: ${ApiConstants.defaultHeaders}');
+      
+      final Future<http.Response> future = http.post(
+        Uri.parse(url),
+        headers: ApiConstants.defaultHeaders,
         body: json.encode({'email': email, 'password': password}),
-      ).timeout(const Duration(seconds: 30));
+      );
+      
+      final response = await future.timeout(ApiConstants.connectionTimeout);
+      debugPrint('✅ [Login] Status: ${response.statusCode}');
 
       final responseData = json.decode(response.body);
 
@@ -111,15 +129,17 @@ class AuthProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      final response = await http.post(
+      final Future<http.Response> future = http.post(
         Uri.parse(ApiConstants.register),
-        headers: {'Content-Type': 'application/json'},
+        headers: ApiConstants.defaultHeaders,
         body: json.encode({
           'name': name,
           'email': email,
           'password': password,
         }),
-      ).timeout(const Duration(seconds: 30));
+      );
+      
+      final response = await future.timeout(ApiConstants.connectionTimeout);
 
       final responseData = json.decode(response.body);
 

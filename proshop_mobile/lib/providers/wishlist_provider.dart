@@ -26,10 +26,15 @@ class WishlistProvider with ChangeNotifier {
       final token = await _storage.read(key: 'token');
       if (token == null) return;
 
-      final response = await http.get(
+      final Future<http.Response> future = http.get(
         Uri.parse('${ApiConstants.baseUrl}/auth/wishlist'),
-        headers: {'Authorization': 'Bearer $token'},
-      ).timeout(const Duration(seconds: 30));
+        headers: {
+          ...ApiConstants.defaultHeaders,
+          'Authorization': 'Bearer $token',
+        },
+      );
+      
+      final response = await future.timeout(ApiConstants.connectionTimeout);
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -53,10 +58,15 @@ class WishlistProvider with ChangeNotifier {
 
     try {
       final token = await _storage.read(key: 'token');
-      await http.post(
+      final Future<http.Response> future = http.post(
         Uri.parse('${ApiConstants.baseUrl}/auth/wishlist/${product.id}'),
-        headers: {'Authorization': 'Bearer $token'},
+        headers: {
+          ...ApiConstants.defaultHeaders,
+          'Authorization': 'Bearer $token',
+        },
       );
+      
+      await future.timeout(ApiConstants.connectionTimeout);
     } catch (e) {
       _wishlist.removeWhere((item) => item.id == product.id);
       notifyListeners();
@@ -75,10 +85,15 @@ class WishlistProvider with ChangeNotifier {
 
     try {
       final token = await _storage.read(key: 'token');
-      await http.delete(
+      final Future<http.Response> future = http.delete(
         Uri.parse('${ApiConstants.baseUrl}/auth/wishlist/$productId'),
-        headers: {'Authorization': 'Bearer $token'},
+        headers: {
+          ...ApiConstants.defaultHeaders,
+          'Authorization': 'Bearer $token',
+        },
       );
+      
+      await future.timeout(ApiConstants.connectionTimeout);
     } catch (e) {
       _wishlist.insert(index, removedItem);
       notifyListeners();
