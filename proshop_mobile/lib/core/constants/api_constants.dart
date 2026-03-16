@@ -1,12 +1,27 @@
 class ApiConstants {
-  // Current Base URL - can be updated at runtime
-  static String _baseUrl = 'http://10.42.0.176:5000/api/v1';
+  // Current Base URL - can be updated at runtime or via build flags
+  // Use --dart-define=API_URL=https://your-api.com to override
+  static String _baseUrl = const String.fromEnvironment(
+    'API_URL',
+    defaultValue: 'http://192.168.137.127:5000/api/v1', // Using stable Local IP
+  );
   
   static String get baseUrl => _baseUrl;
   
   static set baseUrl(String value) {
-    _baseUrl = value;
+    if (value.isNotEmpty) {
+      _baseUrl = value;
+    }
   }
+
+  // Headers and Timeouts
+  static Map<String, String> get defaultHeaders => {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'bypass-tunnel-reminder': 'true',
+  };
+
+  static const Duration connectionTimeout = Duration(seconds: 30);
 
   // Auth endpoints
   static String get register => '$baseUrl/auth/register';
@@ -34,4 +49,8 @@ class ApiConstants {
   static String get paypalConfig => '$baseUrl/orders/config/paypal';
   static String get stripePaymentIntent => '$baseUrl/stripe/create-payment-intent';
   static String get stripeConfig => '$baseUrl/stripe/config';
+  
+  // Chapa
+  static String get chapaInitialize => '$baseUrl/chapa/initialize';
+  static String get chapaVerify => '$baseUrl/chapa/verify';
 }
