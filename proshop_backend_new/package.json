@@ -5,6 +5,9 @@
   "scripts": {
     "start": "node server/server.js",
     "dev": "nodemon server/server.js",
+    "tunnel": "lt --port 5000 --subdomain proshop-pro-v1",
+    "tunnel:alt": "ssh -R 80:localhost:5000 localhost.run",
+    "ip": "hostname -I",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -30,6 +33,7 @@
     "stripe": "^20.3.0"
   },
   "devDependencies": {
+    "localtunnel": "^2.0.2",
     "nodemon": "^3.1.11"
   }
 }
